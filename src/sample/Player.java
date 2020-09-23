@@ -6,11 +6,10 @@ player class
 public class Player {
     private String name;
 
+    public Player() {
+    }
     public Player(String name) {
         this.name = name;
-    }
-    public String name() {
-        return name;
     }
 
     public void setName(String name) {
@@ -18,7 +17,7 @@ public class Player {
     }
 
     public String getName() {
-        return this.name;
+        return name;
     }
 
 }

@@ -16,6 +16,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class Main extends Application {
 
@@ -25,7 +27,7 @@ public class Main extends Application {
     // game canvas dimensions
     private static int width = 800;
     private static int height = 800;
-    
+
     @Override
     public void start(Stage primaryStage) throws Exception {
 
@@ -121,6 +123,9 @@ public class Main extends Application {
         configGroup.getChildren().add(configCanvas);
         configGroup.getChildren().add(grid);
 
+        AtomicBoolean itsAllGood = new AtomicBoolean(false);
+        AtomicBoolean toUI = new AtomicBoolean(false);
+
         nameEnter.setOnMouseClicked(e -> {
             boolean invalid = true;
             char[] a = nameEntry.getText().toCharArray();
@@ -136,23 +141,77 @@ public class Main extends Application {
                 nameLabel.setText("Name invalid, please re-enter:");
                 nameEntry.clear();
             } else {
-                player.setName(nameEntry.getText());
                 nameLabel.setText("Name Entered: " + nameEntry.getText());
+                itsAllGood.set(true);
             }
         });
         // WHEN THE ENTER BUTTON IS CLICKED,
         // THE NAME ENTERED IS SET TO THE NAME OF THE PLAYER OBJECT
         // DIFFICULTY, SEED, AND SEASON ARE SET TO THEIR CORRESPONDING
         // FIELDS IN THE CONFIGURATIONS OF WORLD OBJECT
+
+        Label addDiff = new Label("Please select a difficulty, don't leave it blank");
+        Label addSeed = new Label("Please select a seed, don't leave it blank");
+        Label addSeason = new Label("Please select a season, don't leave it blank");
+        Label addNameMust = new Label("Please don't forget to enter a valid name!");
+
         enter.setOnMouseClicked(e -> {
-            configurationsOfWorld.setDifficulty(diffBox.getValue().toString());
-            configurationsOfWorld.setSeed(seedBox.getValue().toString());
-            configurationsOfWorld.setSeason(seasonBox.getValue().toString());
+            boolean isDifficultyEmpty = diffBox.getValue() == null;
+            boolean isSeedEmpty = seedBox.getValue() == null;
+            boolean isSeasonEmpty = seasonBox.getValue() == null;
+
+            boolean itsOk = itsAllGood.getAndSet(true);
+            if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
+                configurationsOfWorld.setDifficulty(diffBox.getValue().toString());
+                configurationsOfWorld.setSeed(seedBox.getValue().toString());
+                configurationsOfWorld.setSeason(seasonBox.getValue().toString());
+                player.setName(nameEntry.getText());
+                addDiff.setText("");
+                addSeed.setText("");
+                addSeason.setText("");
+                addNameMust.setText("");
+                boolean user = toUI.getAndSet(true);
+            } else {
+                if (isDifficultyEmpty) {
+                    grid.add(addDiff, 2, 1);
+                } else if (isSeedEmpty) {
+                    grid.add(addSeed, 2, 2);
+                } else if (isSeasonEmpty) {
+                    grid.add(addSeason, 2, 3);
+                } else {
+                    grid.add(addNameMust, 5, 0);
+                }
+            }
+
             // TESTING OUTPUT
             grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
                     + " " + configurationsOfWorld.getSeed() + " "
                     + configurationsOfWorld.getSeason()), 0, 5);
         });
+
+        Button continueToUI = new Button("Click to Continue");
+        grid.add(continueToUI, 0, 6);
+
+        Group userInterface = new Group();
+        Scene userInterfaceScene = new Scene(userInterface);
+
+        Label fillEverything = new Label("Please fill in every field correctly to continue!");
+
+        continueToUI.setOnMouseClicked(e -> {
+            // GOES TO USER INTERFACE SCENE
+            boolean user = toUI.getAndSet(true);
+            if (user) {
+                primaryStage.setScene(userInterfaceScene);
+                fillEverything.setText("");
+            } else {
+                grid.add(fillEverything, 7, 0);
+            }
+        });
+
+        // SETS UP USER INTERFACE CANVAS
+        Canvas userInterfaceCanvas = new Canvas(width, height);
+        userInterface.getChildren().add(userInterfaceCanvas);
+
         // SHOW STAGE
         primaryStage.show();
     }
