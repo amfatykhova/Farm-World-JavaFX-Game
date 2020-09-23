@@ -4,11 +4,11 @@ package sample;
 difficulty, starting seed, starting season
  */
 public class FarmWorldConfigurations {
-    public String difficulty;
+    private String difficulty;
     // easy, medium, hard
-    public String seed;
+    private String seed;
     // barrow hills, dessert oasis, rolling plains
-    public String season;
+    private String season;
     // winter, spring, summer, fall
 
     // empty constructor
