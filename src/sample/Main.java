@@ -117,15 +117,18 @@ public class Main extends Application {
         TextField nameEntry = new TextField();
 
         // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
-        Button enter = new Button("Enter");
+        Button enter = new Button("Enter Game Configurations");
+        Button nameEnter = new Button("Enter Name");
+        Label nameLabel = new Label("Enter Name: ");
 
         // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
         GridPane grid = new GridPane();
         grid.setVgap(4);
         grid.setHgap(10);
         grid.setPadding(new Insets(5, 5, 5, 5));
-        grid.add(new Label("Enter Name: "), 0, 0);
+        grid.add(nameLabel, 0, 0);
         grid.add(nameEntry, 1, 0);
+        grid.add(nameEnter, 2, 0);
         grid.add(new Label("Choose Difficulty: "), 0, 1);
         grid.add(diffBox, 1, 1);
         grid.add(new Label("Choose Seed: "), 0, 2);
@@ -138,13 +141,36 @@ public class Main extends Application {
         configGroup.getChildren().add(configCanvas);
         configGroup.getChildren().add(grid);
 
+
+        nameEnter.setOnMouseClicked(e -> {
+            boolean invalid = true;
+            char[] a = nameEntry.getText().toCharArray();
+
+            for (char letter: a) {
+                if (!(letter == ' ')) {
+                    invalid = false;
+                }
+                if (!invalid) {
+                    break;
+                }
+            }
+
+            if (invalid) {
+                nameLabel.setText("Name invalid, please re-enter:");
+                nameEntry.clear();
+            } else {
+                player.setName(nameEntry.getText());
+                nameLabel.setText("Name Entered: " + nameEntry.getText());
+            }
+        });
+
         // WHEN THE ENTER BUTTON IS CLICKED, THE NAME ENTERED IS SET TO THE NAME OF THE PLAYER OBJECT
         // DIFFICULTY, SEED, AND SEASON ARE SET TO THEIR CORRESPONDING FIELDS IN THE CONFIGURATIONS OF WORLD OBJECT
         /*
         event handler
          */
         enter.setOnMouseClicked(e -> {
-            player.setName(nameEntry.getText());
+
             configurationsOfWorld.setDifficulty(diffBox.getValue().toString());
             configurationsOfWorld.setSeed(seedBox.getValue().toString());
             configurationsOfWorld.setSeason(seasonBox.getValue().toString());
@@ -153,6 +179,7 @@ public class Main extends Application {
             grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
                     + " " + configurationsOfWorld.getSeed() + " " + configurationsOfWorld.getSeason()), 0, 5);
         });
+
 
         // SHOW STAGE
         primaryStage.show();
