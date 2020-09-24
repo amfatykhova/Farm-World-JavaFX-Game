@@ -10,10 +10,12 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -23,6 +25,7 @@ public class Main extends Application {
 
     private Scene welcome;
     private Scene config;
+    private Scene farmUI;
 
     // game canvas dimensions
     private static int width = 800;
@@ -40,18 +43,22 @@ public class Main extends Application {
         Canvas welcomeCanvas = new Canvas(width, height);
         welcomeGroup.getChildren().add(welcomeCanvas);
         GraphicsContext gc = welcomeCanvas.getGraphicsContext2D();
+
         // SETS CANVAS COLOR
         Color c = Color.rgb(139, 218, 232);
         gc.setFill(c);
         gc.fillRect(0, 0, welcomeCanvas.getWidth(), welcomeCanvas.getHeight());
+
         // IMPORTS LOGO
-        Image farm = new Image("file:images/FarmWorld2.png");
-        gc.drawImage(farm, 110, 100);
+        Image farmImg = new Image("file:images/FarmWorld2.png");
+        gc.drawImage(farmImg, 110, 100);
+
         // SETS UP START BUTTON
         Button start = new Button("START");
-        start.setTranslateY(615);
-        start.setTranslateX(370);
+        start.setTranslateY(welcomeCanvas.getHeight() * 0.75 + 15); // 615
+        start.setTranslateX(welcomeCanvas.getWidth() / 2 - 30); // 370
         welcomeGroup.getChildren().add(start);
+
         // SETS UP TITLE TEXT FOR WELCOME SCREEN
         gc.setFill(Color.WHITE);
         gc.setStroke(Color.DARKCYAN);
@@ -60,6 +67,7 @@ public class Main extends Application {
         gc.setFont(theFont);
         gc.fillText("Welcome to Farm World!", 70, 70);
         gc.strokeText("Welcome to Farm World!", 70, 70);
+
         // ------SCENE CONFIGURATION-------
         Group configGroup = new Group();
         config = new Scene(configGroup);
@@ -145,10 +153,6 @@ public class Main extends Application {
                 itsAllGood.set(true);
             }
         });
-        // WHEN THE ENTER BUTTON IS CLICKED,
-        // THE NAME ENTERED IS SET TO THE NAME OF THE PLAYER OBJECT
-        // DIFFICULTY, SEED, AND SEASON ARE SET TO THEIR CORRESPONDING
-        // FIELDS IN THE CONFIGURATIONS OF WORLD OBJECT
 
         Label addDiff = new Label("Please select a difficulty, don't leave it blank");
         Label addSeed = new Label("Please select a seed, don't leave it blank");
@@ -184,16 +188,24 @@ public class Main extends Application {
             }
 
             // TESTING OUTPUT
+            /*
             grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
                     + " " + configurationsOfWorld.getSeed() + " "
                     + configurationsOfWorld.getSeason()), 0, 5);
+             */
+
         });
 
+        // -------SCENE FarmUI--------
         Button continueToUI = new Button("Click to Continue");
         grid.add(continueToUI, 0, 6);
 
-        Group userInterface = new Group();
-        Scene userInterfaceScene = new Scene(userInterface);
+        Group farmUIGroup = new Group();
+        Canvas farmCanvas = new Canvas(width, height);
+        farmUI = new Scene(farmUIGroup);
+        Farm farm = new Farm(0);
+        Text moneyDisplay = new Text("");
+        Text dayDisplay = new Text("");
 
         Label fillEverything = new Label("Please fill in every field correctly to continue!");
 
@@ -201,16 +213,65 @@ public class Main extends Application {
             // GOES TO USER INTERFACE SCENE
             boolean user = toUI.getAndSet(true);
             if (user) {
-                primaryStage.setScene(userInterfaceScene);
-                fillEverything.setText("");
+                grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
+                        + " " + configurationsOfWorld.getSeed() + " "
+                        + configurationsOfWorld.getSeason()), 0, 5);
+
+                int startingMoney = 0;
+                switch (configurationsOfWorld.getDifficulty()) {
+                    case "Medium":
+                        startingMoney = 750;
+                        break;
+                    case "Hard":
+                        startingMoney = 500;
+                        break;
+                    default:
+                        startingMoney = 1000;
+                }
+                farm.setMoney(startingMoney);
+                moneyDisplay.setText("Money: $" + farm.getMoney());
+                Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
+                moneyDisplay.setFont(displayFont);
+                moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
+                dayDisplay.setText("Day " + farm.getDay());
+                dayDisplay.setFont(displayFont);
+                dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
+                dayDisplay.setTranslateX(width - dayDisplay.getLayoutBounds().getWidth());
+
+                GraphicsContext gc2 = farmCanvas.getGraphicsContext2D();
+                Image plotImg = new Image("file:images/SamplePlot.png");
+                GridPane farmGrid = new GridPane();
+
+                int plotSize = 100;
+                int plotCols = 4;
+                int plotRows = 3;
+
+                for (int i = 0; i < plotCols; i++) {
+                    for (int j = 0; j < plotRows; j++) {
+                        ImageView plotView = new ImageView(plotImg);
+                        plotView.setFitHeight(plotSize);
+                        plotView.setFitWidth(plotSize);
+                        farmGrid.add(plotView, i, j);
+                    }
+                }
+
+                farmGrid.setTranslateX((farmCanvas.getWidth() / 2)
+                        - (plotSize * farmGrid.getColumnCount() / 2));
+                farmGrid.setTranslateY((farmCanvas.getHeight() / 2)
+                        - (plotSize * farmGrid.getRowCount() / 2));
+
+                farmUIGroup.getChildren().add(moneyDisplay);
+                farmUIGroup.getChildren().add(dayDisplay);
+                farmUIGroup.getChildren().add(farmGrid);
+                farmUIGroup.getChildren().add(farmCanvas);
+
+                primaryStage.setScene(farmUI);
             } else {
                 grid.add(fillEverything, 7, 0);
             }
+
         });
 
-        // SETS UP USER INTERFACE CANVAS
-        Canvas userInterfaceCanvas = new Canvas(width, height);
-        userInterface.getChildren().add(userInterfaceCanvas);
 
         // SHOW STAGE
         primaryStage.show();
