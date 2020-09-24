@@ -219,14 +219,14 @@ public class Main extends Application {
 
                 int startingMoney = 0;
                 switch (configurationsOfWorld.getDifficulty()) {
-                    case "Medium":
-                        startingMoney = 750;
-                        break;
-                    case "Hard":
-                        startingMoney = 500;
-                        break;
-                    default:
-                        startingMoney = 1000;
+                case "Medium":
+                    startingMoney = 750;
+                    break;
+                case "Hard":
+                    startingMoney = 500;
+                    break;
+                default:
+                    startingMoney = 1000;
                 }
                 farm.setMoney(startingMoney);
                 moneyDisplay.setText("Money: $" + farm.getMoney());
