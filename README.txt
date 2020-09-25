@@ -8,3 +8,8 @@ FarmWorldConfigurations.java: this is the configurations object that stores:
   - difficulty
   - seed
   - season
+Farm.java: this is the farm object
+  - incrementDay()
+  - getMoney()
+  - setMoney()
+  - getDay()
