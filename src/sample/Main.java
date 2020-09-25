@@ -105,88 +105,11 @@ public class Main extends Application {
                         "Fall"
                 );
         final ComboBox seasonBox = new ComboBox(seasonOptions);
-        // CREATES TEXTFIELD AND BUTTON FOR NAME ENTRY
-        TextField nameEntry = new TextField();
-        // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
-        Button enter = new Button("Enter Game Configurations");
-        Button nameEnter = new Button("Enter Name");
-        Label nameLabel = new Label("Enter Name: ");
 
-        // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
-        GridPane grid = new GridPane();
-        grid.setVgap(4);
-        grid.setHgap(10);
-        grid.setPadding(new Insets(5, 5, 5, 5));
-        grid.add(nameLabel, 0, 0);
-        grid.add(nameEntry, 1, 0);
-        grid.add(nameEnter, 2, 0);
-        grid.add(new Label("Choose Difficulty: "), 0, 1);
-        grid.add(diffBox, 1, 1);
-        grid.add(new Label("Choose Seed: "), 0, 2);
-        grid.add(seedBox, 1, 2);
-        grid.add(new Label("Choose Season :"), 0, 3);
-        grid.add(seasonBox, 1, 3);
-        grid.add(enter, 0, 4);
-
-        configGroup.getChildren().add(configCanvas);
-        configGroup.getChildren().add(grid);
-
-        AtomicBoolean itsAllGood = new AtomicBoolean(false);
         AtomicBoolean toUI = new AtomicBoolean(false);
 
-        nameEnter.setOnMouseClicked(e -> {
-            boolean invalid = true;
-            char[] a = nameEntry.getText().toCharArray();
-            for (char letter: a) {
-                if (!(letter == ' ')) {
-                    invalid = false;
-                }
-                if (!invalid) {
-                    break;
-                }
-            }
-            if (invalid) {
-                nameLabel.setText("Name invalid, please re-enter:");
-                nameEntry.clear();
-            } else {
-                nameLabel.setText("Name Entered: " + nameEntry.getText());
-                itsAllGood.set(true);
-            }
-        });
-
-        Label addDiff = new Label("Please select a difficulty, don't leave it blank");
-        Label addSeed = new Label("Please select a seed, don't leave it blank");
-        Label addSeason = new Label("Please select a season, don't leave it blank");
-        Label addNameMust = new Label("Please don't forget to enter a valid name!");
-
-        enter.setOnMouseClicked(e -> {
-            boolean isDifficultyEmpty = diffBox.getValue() == null;
-            boolean isSeedEmpty = seedBox.getValue() == null;
-            boolean isSeasonEmpty = seasonBox.getValue() == null;
-
-            boolean itsOk = itsAllGood.getAndSet(true);
-            if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
-                configurationsOfWorld.setDifficulty(diffBox.getValue().toString());
-                configurationsOfWorld.setSeed(seedBox.getValue().toString());
-                configurationsOfWorld.setSeason(seasonBox.getValue().toString());
-                player.setName(nameEntry.getText());
-                addDiff.setText("");
-                addSeed.setText("");
-                addSeason.setText("");
-                addNameMust.setText("");
-                boolean user = toUI.getAndSet(true);
-            } else {
-                if (isDifficultyEmpty) {
-                    grid.add(addDiff, 2, 1);
-                } else if (isSeedEmpty) {
-                    grid.add(addSeed, 2, 2);
-                } else if (isSeasonEmpty) {
-                    grid.add(addSeason, 2, 3);
-                } else {
-                    grid.add(addNameMust, 5, 0);
-                }
-            }
-        });
+        GridPane grid = configOptionsScreen(new ComboBox[] {diffBox, seedBox, seasonBox},
+                configGroup, configCanvas, toUI, configurationsOfWorld, player);
 
         // -------SCENE FarmUI--------
         Button continueToUI = new Button("Click to Continue");
@@ -209,53 +132,8 @@ public class Main extends Application {
                         + " " + configurationsOfWorld.getSeed() + " "
                         + configurationsOfWorld.getSeason()), 0, 5);
 
-                int startingMoney = 0;
-                switch (configurationsOfWorld.getDifficulty()) {
-                case "Medium":
-                    startingMoney = 750;
-                    break;
-                case "Hard":
-                    startingMoney = 500;
-                    break;
-                default:
-                    startingMoney = 1000;
-                }
-                farm.setMoney(startingMoney);
-                moneyDisplay.setText("Money: $" + farm.getMoney());
-                Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
-                moneyDisplay.setFont(displayFont);
-                moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
-                dayDisplay.setText("Day " + farm.getDay());
-                dayDisplay.setFont(displayFont);
-                dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
-                dayDisplay.setTranslateX(width - dayDisplay.getLayoutBounds().getWidth());
-
-                GraphicsContext gc2 = farmCanvas.getGraphicsContext2D();
-                Image plotImg = new Image("file:images/SamplePlot.png");
-                GridPane farmGrid = new GridPane();
-
-                int plotSize = 100;
-                int plotCols = 4;
-                int plotRows = 3;
-
-                for (int i = 0; i < plotCols; i++) {
-                    for (int j = 0; j < plotRows; j++) {
-                        ImageView plotView = new ImageView(plotImg);
-                        plotView.setFitHeight(plotSize);
-                        plotView.setFitWidth(plotSize);
-                        farmGrid.add(plotView, i, j);
-                    }
-                }
-
-                farmGrid.setTranslateX((farmCanvas.getWidth() / 2)
-                        - (plotSize * farmGrid.getColumnCount() / 2));
-                farmGrid.setTranslateY((farmCanvas.getHeight() / 2)
-                        - (plotSize * farmGrid.getRowCount() / 2));
-
-                farmUIGroup.getChildren().add(moneyDisplay);
-                farmUIGroup.getChildren().add(dayDisplay);
-                farmUIGroup.getChildren().add(farmGrid);
-                farmUIGroup.getChildren().add(farmCanvas);
+                configureFarmScreen(farmUIGroup, configurationsOfWorld, moneyDisplay,
+                        dayDisplay, farmCanvas, farm);
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -263,9 +141,147 @@ public class Main extends Application {
             }
         });
 
-
         // SHOW STAGE
         primaryStage.show();
+    }
+
+    private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
+                                                Canvas configCanvas, AtomicBoolean toUI,
+                                                FarmWorldConfigurations world, Player player) {
+        // CREATES TEXTFIELD AND BUTTON FOR NAME ENTRY
+        TextField nameEntry = new TextField();
+        // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
+        Button enter = new Button("Enter Game Configurations");
+        Button nameEnter = new Button("Enter Name");
+        Label nameLabel = new Label("Enter Name: ");
+
+        // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
+        GridPane grid = new GridPane();
+        grid.setVgap(4);
+        grid.setHgap(10);
+        grid.setPadding(new Insets(5, 5, 5, 5));
+        grid.add(nameLabel, 0, 0);
+        grid.add(nameEntry, 1, 0);
+        grid.add(nameEnter, 2, 0);
+        grid.add(new Label("Choose Difficulty: "), 0, 1);
+        grid.add(boxes[0], 1, 1);
+        grid.add(new Label("Choose Seed: "), 0, 2);
+        grid.add(boxes[1], 1, 2);
+        grid.add(new Label("Choose Season :"), 0, 3);
+        grid.add(boxes[2], 1, 3);
+        grid.add(enter, 0, 4);
+
+        configGroup.getChildren().add(configCanvas);
+        configGroup.getChildren().add(grid);
+
+        AtomicBoolean itsAllGood = new AtomicBoolean(false);
+
+        nameEnter.setOnMouseClicked(e -> {
+            boolean invalid = true;
+            char[] a = nameEntry.getText().toCharArray();
+            for (char letter : a) {
+                if (!(letter == ' ')) {
+                    invalid = false;
+                }
+                if (!invalid) {
+                    break;
+                }
+            }
+            if (invalid) {
+                nameLabel.setText("Name invalid, please re-enter:");
+                nameEntry.clear();
+            } else {
+                nameLabel.setText("Name Entered: " + nameEntry.getText());
+                itsAllGood.set(true);
+            }
+        });
+
+        Label addDiff = new Label("Please select a difficulty, don't leave it blank");
+        Label addSeed = new Label("Please select a seed, don't leave it blank");
+        Label addSeason = new Label("Please select a season, don't leave it blank");
+        Label addNameMust = new Label("Please don't forget to enter a valid name!");
+
+        enter.setOnMouseClicked(e -> {
+            boolean isDifficultyEmpty = boxes[0].getValue() == null;
+            boolean isSeedEmpty = boxes[1].getValue() == null;
+            boolean isSeasonEmpty = boxes[2].getValue() == null;
+
+            boolean itsOk = itsAllGood.getAndSet(true);
+            if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
+                world.setDifficulty(boxes[0].getValue().toString());
+                world.setSeed(boxes[1].getValue().toString());
+                world.setSeason(boxes[2].getValue().toString());
+                player.setName(nameEntry.getText());
+                addDiff.setText("");
+                addSeed.setText("");
+                addSeason.setText("");
+                addNameMust.setText("");
+                boolean user = toUI.getAndSet(true);
+            } else {
+                if (isDifficultyEmpty) {
+                    grid.add(addDiff, 2, 1);
+                } else if (isSeedEmpty) {
+                    grid.add(addSeed, 2, 2);
+                } else if (isSeasonEmpty) {
+                    grid.add(addSeason, 2, 3);
+                } else {
+                    grid.add(addNameMust, 5, 0);
+                }
+            }
+        });
+        return grid;
+    }
+
+    private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
+                                            Text moneyDisplay, Text dayDisplay, Canvas farmCanvas,
+                                            Farm farm) {
+        int startingMoney = 0;
+        switch (config.getDifficulty()) {
+        case "Medium":
+            startingMoney = 750;
+            break;
+        case "Hard":
+            startingMoney = 500;
+            break;
+        default:
+            startingMoney = 1000;
+        }
+        farm.setMoney(startingMoney);
+        moneyDisplay.setText("Money: $" + farm.getMoney());
+        Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
+        moneyDisplay.setFont(displayFont);
+        moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
+        dayDisplay.setText("Day " + farm.getDay());
+        dayDisplay.setFont(displayFont);
+        dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
+        dayDisplay.setTranslateX(width - dayDisplay.getLayoutBounds().getWidth());
+
+        GraphicsContext gc2 = farmCanvas.getGraphicsContext2D();
+        Image plotImg = new Image("file:images/SamplePlot.png");
+        GridPane farmGrid = new GridPane();
+
+        int plotSize = 100;
+        int plotCols = 4;
+        int plotRows = 3;
+
+        for (int i = 0; i < plotCols; i++) {
+            for (int j = 0; j < plotRows; j++) {
+                ImageView plotView = new ImageView(plotImg);
+                plotView.setFitHeight(plotSize);
+                plotView.setFitWidth(plotSize);
+                farmGrid.add(plotView, i, j);
+            }
+        }
+
+        farmGrid.setTranslateX((farmCanvas.getWidth() / 2)
+                - (plotSize * farmGrid.getColumnCount() / 2));
+        farmGrid.setTranslateY((farmCanvas.getHeight() / 2)
+                - (plotSize * farmGrid.getRowCount() / 2));
+
+        farmUIGroup.getChildren().add(moneyDisplay);
+        farmUIGroup.getChildren().add(dayDisplay);
+        farmUIGroup.getChildren().add(farmGrid);
+        farmUIGroup.getChildren().add(farmCanvas);
     }
 
 
