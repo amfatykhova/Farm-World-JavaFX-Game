@@ -186,14 +186,6 @@ public class Main extends Application {
                     grid.add(addNameMust, 5, 0);
                 }
             }
-
-            // TESTING OUTPUT
-            /*
-            grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
-                    + " " + configurationsOfWorld.getSeed() + " "
-                    + configurationsOfWorld.getSeason()), 0, 5);
-             */
-
         });
 
         // -------SCENE FarmUI--------
@@ -269,7 +261,6 @@ public class Main extends Application {
             } else {
                 grid.add(fillEverything, 7, 0);
             }
-
         });
 
 

@@ -18,7 +18,7 @@ public class Farm {
 
     public void setMoney(int amount) {
         if (amount < 0) {
-            throw new IllegalArgumentException("Starting money can't be a negative integer.");
+            throw new IllegalArgumentException("Money can't be a negative integer.");
         }
         this.money = amount;
     }
