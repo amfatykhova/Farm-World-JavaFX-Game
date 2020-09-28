@@ -13,3 +13,5 @@ Farm.java: this is the farm object
   - getMoney()
   - setMoney()
   - getDay()
+  
+This also includes the M2JUnit class
