@@ -5,6 +5,7 @@ player class
  */
 public class Player {
     private String name;
+    // Inventory here
 
     public Player() {
     }

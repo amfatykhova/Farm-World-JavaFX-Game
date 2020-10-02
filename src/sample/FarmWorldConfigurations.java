@@ -4,7 +4,24 @@ package sample;
 difficulty, starting seed, starting season
  */
 public class FarmWorldConfigurations {
-    private String difficulty;
+
+    enum Difficulty {
+        EASY(1.0),
+        MEDIUM(0.75),
+        HARD(0.5);
+
+        private double multiplier;
+
+        Difficulty(double multiplier) {
+            this.multiplier = multiplier;
+        }
+
+        public double getMultiplier() {
+            return multiplier;
+        }
+    }
+
+    private Difficulty difficulty;
     // easy, medium, hard
     private String seed;
     // barrow hills, dessert oasis, rolling plains
@@ -16,18 +33,18 @@ public class FarmWorldConfigurations {
     }
 
     public FarmWorldConfigurations(String difficulty, String seed, String season) {
-        this.difficulty = difficulty;
+        this.difficulty = Difficulty.valueOf(difficulty);
         this.seed = seed;
         this.season = season;
     }
 
 
-    public String getDifficulty() {
+    public Difficulty getDifficulty() {
         return difficulty;
     }
 
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
+    public void setDifficulty(String diff) {
+        this.difficulty = Difficulty.valueOf(diff);
     }
 
     public String getSeed() {
@@ -44,5 +61,9 @@ public class FarmWorldConfigurations {
 
     public void setSeason(String season) {
         this.season = season;
+    }
+
+    public int getStartingMoney() {
+        return (int) this.difficulty.getMultiplier() * 1000;
     }
 }

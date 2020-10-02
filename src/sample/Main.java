@@ -235,18 +235,7 @@ public class Main extends Application {
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
                                             Text moneyDisplay, Text dayDisplay, Canvas farmCanvas,
                                             Farm farm) {
-        int startingMoney = 0;
-        switch (config.getDifficulty()) {
-        case "Medium":
-            startingMoney = 750;
-            break;
-        case "Hard":
-            startingMoney = 500;
-            break;
-        default:
-            startingMoney = 1000;
-        }
-        farm.setMoney(startingMoney);
+        farm.setMoney(config.getStartingMoney());
         moneyDisplay.setText("Money: $" + farm.getMoney());
         Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
         moneyDisplay.setFont(displayFont);
