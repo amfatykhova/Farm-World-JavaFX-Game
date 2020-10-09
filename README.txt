@@ -32,8 +32,8 @@ Market.java: this is the market object
   -
   - getPrice()
   - getSeeds()
-  - sell()
-  - buy()
+  - sellItem()
+  - buyItem()
 
 Marketable.java: this is an interface for marketable items
   - getPrice()

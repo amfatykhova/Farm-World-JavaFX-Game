@@ -21,14 +21,15 @@ public class Market {
         return this.prices.get(item);
     }
 
-    public int sellItem(Item item, int quantity) {
+    public int sellItem(Item item, int quantity) throws IllegalArgumentException {
         this.inventory.remove(item, quantity);
         double variance = new Random().nextGaussian() * 5.0;
         return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()
                 + variance));
     }
 
-    public void buyItem(Item item, int quantity) {
-
+    public int buyItem(Item item, int quantity) throws InventoryCapacityException {
+        this.inventory.add(item, quantity);
+        return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()));
     }
 }
