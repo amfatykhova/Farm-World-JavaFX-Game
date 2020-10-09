@@ -23,13 +23,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main extends Application {
 
-    private Scene welcome;
-    private Scene config;
-    private Scene farmUI;
+    private static Scene config;
+    private static Scene farmUI;
 
     // game canvas dimensions
-    private static int width = 800;
-    private static int height = 800;
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 800;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -38,9 +37,9 @@ public class Main extends Application {
 
         // -------SCENE WELCOME-------
         Group welcomeGroup = new Group();
-        welcome = new Scene(welcomeGroup);
+        Scene welcome = new Scene(welcomeGroup);
         primaryStage.setScene(welcome);
-        Canvas welcomeCanvas = new Canvas(width, height);
+        Canvas welcomeCanvas = new Canvas(WIDTH, HEIGHT);
         welcomeGroup.getChildren().add(welcomeCanvas);
         GraphicsContext gc = welcomeCanvas.getGraphicsContext2D();
 
@@ -72,12 +71,8 @@ public class Main extends Application {
         Group configGroup = new Group();
         config = new Scene(configGroup);
         // switch when button "start" clicked
-        start.setOnMouseClicked(e -> {
-            primaryStage.setScene(config);
-        });
-        Canvas configCanvas = new Canvas(width, height);
-        // CREATES A PLAYER OBJECT
-        Player player = new Player();
+        start.setOnMouseClicked(e -> primaryStage.setScene(config));
+        Canvas configCanvas = new Canvas(WIDTH, HEIGHT);
         // CREATES A NEW FARM WORLD CONFIGURATIONS OBJECT
         FarmWorldConfigurations configurationsOfWorld = new FarmWorldConfigurations();
         // CREATES DROP DOWN MENU FOR DIFFICULTY
@@ -108,19 +103,27 @@ public class Main extends Application {
 
         AtomicBoolean toUI = new AtomicBoolean(false);
 
+        Player player = new Player();
+
         GridPane grid = configOptionsScreen(new ComboBox[] {diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
 
         // -------SCENE FarmUI--------
+        configFarmUI(primaryStage, configurationsOfWorld, toUI, player, grid);
+
+        // SHOW STAGE
+        primaryStage.show();
+    }
+
+    private static void configFarmUI(Stage primaryStage, FarmWorldConfigurations worldConfig,
+                              AtomicBoolean toUI, Player player, GridPane grid) {
         Button continueToUI = new Button("Click to Continue");
         grid.add(continueToUI, 0, 6);
 
         Group farmUIGroup = new Group();
-        Canvas farmCanvas = new Canvas(width, height);
+        Canvas farmCanvas = new Canvas(WIDTH, HEIGHT);
         farmUI = new Scene(farmUIGroup);
         Farm farm = new Farm(0);
-        Text moneyDisplay = new Text("");
-        Text dayDisplay = new Text("");
 
         Label fillEverything = new Label("Please fill in every field correctly to continue!");
 
@@ -128,35 +131,34 @@ public class Main extends Application {
             // GOES TO USER INTERFACE SCENE
             boolean user = toUI.getAndSet(true);
             if (user) {
-                grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
-                        + " " + configurationsOfWorld.getSeed() + " "
-                        + configurationsOfWorld.getSeason()), 0, 5);
+                grid.add(new Label(player.getName() + " " + worldConfig.getDifficulty()
+                        + " " + worldConfig.getSeed() + " "
+                        + worldConfig.getSeason()), 0, 5);
 
-                configureFarmScreen(farmUIGroup, configurationsOfWorld, moneyDisplay,
-                        dayDisplay, farmCanvas, farm);
+                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm,
+                        primaryStage);
 
                 primaryStage.setScene(farmUI);
             } else {
                 grid.add(fillEverything, 7, 0);
             }
         });
-
-        // SHOW STAGE
-        primaryStage.show();
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
                                                 Canvas configCanvas, AtomicBoolean toUI,
-                                                FarmWorldConfigurations world, Player player) {
-        // CREATES TEXTFIELD AND BUTTON FOR NAME ENTRY
+                                                FarmWorldConfigurations world, Player player)
+            throws RuntimeException {
+
+        // CREATES TEXT FIELD AND BUTTON FOR NAME ENTRY
         TextField nameEntry = new TextField();
         // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
+        GridPane grid = new GridPane();
         Button enter = new Button("Enter Game Configurations");
         Button nameEnter = new Button("Enter Name");
         Label nameLabel = new Label("Enter Name: ");
 
         // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
-        GridPane grid = new GridPane();
         grid.setVgap(4);
         grid.setHgap(10);
         grid.setPadding(new Insets(5, 5, 5, 5));
@@ -201,6 +203,8 @@ public class Main extends Application {
         Label addSeason = new Label("Please select a season, don't leave it blank");
         Label addNameMust = new Label("Please don't forget to enter a valid name!");
 
+        AtomicBoolean validSetup = new AtomicBoolean(false);
+
         enter.setOnMouseClicked(e -> {
             boolean isDifficultyEmpty = boxes[0].getValue() == null;
             boolean isSeedEmpty = boxes[1].getValue() == null;
@@ -208,15 +212,16 @@ public class Main extends Application {
 
             boolean itsOk = itsAllGood.getAndSet(true);
             if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
-                world.setDifficulty(boxes[0].getValue().toString());
+                world.setDifficulty(boxes[0].getValue().toString().toUpperCase());
                 world.setSeed(boxes[1].getValue().toString());
                 world.setSeason(boxes[2].getValue().toString());
-                player.setName(nameEntry.getText());
+                player.init(nameEntry.getText(), world.getStartingSeeds(), world.getDifficulty());
                 addDiff.setText("");
                 addSeed.setText("");
                 addSeason.setText("");
                 addNameMust.setText("");
                 boolean user = toUI.getAndSet(true);
+                validSetup.set(true);
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
@@ -233,21 +238,41 @@ public class Main extends Application {
     }
 
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Text moneyDisplay, Text dayDisplay, Canvas farmCanvas,
-                                            Farm farm) {
+                                            Canvas farmCanvas, Farm farm, Stage primaryStage) {
+        Text moneyDisplay = new Text("");
+        Text dayDisplay = new Text("");
+        Button toMarketButton = new Button("Market");
+        Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
+        Image plotImg = new Image("file:images/SamplePlot.png");
+        GridPane farmGrid = new GridPane();
+
         farm.setMoney(config.getStartingMoney());
         moneyDisplay.setText("Money: $" + farm.getMoney());
-        Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
         moneyDisplay.setFont(displayFont);
         moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
         dayDisplay.setText("Day " + farm.getDay());
         dayDisplay.setFont(displayFont);
         dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
-        dayDisplay.setTranslateX(width - dayDisplay.getLayoutBounds().getWidth());
+        dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
+        toMarketButton.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 2.0);
+        toMarketButton.setFont(displayFont);
 
-        GraphicsContext gc2 = farmCanvas.getGraphicsContext2D();
-        Image plotImg = new Image("file:images/SamplePlot.png");
-        GridPane farmGrid = new GridPane();
+        toMarketButton.setOnMouseClicked(e -> {
+            // Go to market screen
+            Group marketGroup = new Group();
+            Canvas marketCanvas = new Canvas(WIDTH, HEIGHT);
+            Scene marketUI = new Scene(marketGroup);
+
+            /*
+             Configure market screen
+              - Show current Inventory
+              - Show available items to buy
+              - Sell item should update Inventory and current money
+              - Buy item should update Inventory and current money
+             */
+
+            primaryStage.setScene(marketUI);
+        });
 
         int plotSize = 100;
         int plotCols = 4;
@@ -271,6 +296,7 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(dayDisplay);
         farmUIGroup.getChildren().add(farmGrid);
         farmUIGroup.getChildren().add(farmCanvas);
+        farmUIGroup.getChildren().add(toMarketButton);
     }
 
 

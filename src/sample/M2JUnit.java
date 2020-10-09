@@ -20,7 +20,7 @@ public class M2JUnit {
     public void setUp() {
         realFarm = new Farm(100);
         realWorld = new FarmWorldConfigurations("Easy", "Rolling Plains", "Spring");
-        realPlayer = new Player("Bob");
+        realPlayer = new Player();
     }
 
     //Test Farm

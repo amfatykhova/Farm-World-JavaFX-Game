@@ -1,5 +1,8 @@
 package sample;
 
+import java.util.Arrays;
+import java.util.List;
+
 /*
 difficulty, starting seed, starting season
  */
@@ -27,9 +30,10 @@ public class FarmWorldConfigurations {
     // barrow hills, dessert oasis, rolling plains
     private String season;
     // winter, spring, summer, fall
+    private List<Item> startingSeeds;
 
-    // empty constructor
     public FarmWorldConfigurations() {
+
     }
 
     public FarmWorldConfigurations(String difficulty, String seed, String season) {
@@ -64,6 +68,10 @@ public class FarmWorldConfigurations {
     }
 
     public int getStartingMoney() {
-        return (int) this.difficulty.getMultiplier() * 1000;
+        return (int) (this.difficulty.getMultiplier() * 1000);
+    }
+
+    public List<Item> getStartingSeeds() {
+        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT);
     }
 }

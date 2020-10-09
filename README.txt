@@ -7,12 +7,13 @@ Player.java: this is the player object that stores:
   - Inventory
 
 Inventory.java: this is the inventory object that stores:
-  - Dictionary { crops : seeds }
+  - seeds { <Seed> : <quantity> }
+  - crops { <Crop> : <quantity> }
   - capacity
 
 FarmWorldConfigurations.java: this is the configurations object that stores:
   - difficulty
-  - seed
+  - item
   - season
   - Seed enum
     - Wheat
@@ -28,10 +29,21 @@ Farm.java: this is the farm object
   - getDay()
 
 Market.java: this is the market object
+  -
   - getPrice()
   - getSeeds()
   - sell()
   - buy()
+
+Marketable.java: this is an interface for marketable items
+  - getPrice()
+
+Seed.java: this is an enum of Marketable seeds
+  - Melon $20
+  - Potato $5
+  - Pumpkin $15
+  - Wheat $10
+  - getPrice()  ** Override **
 
 [Milestone]JUnit.java
   - JUnit tests for given Milestone number
