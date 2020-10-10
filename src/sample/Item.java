@@ -10,12 +10,14 @@ public enum Item implements Marketable {
 
     private double basePrice;
     private int startingQuantity;
-    private Button button;
+    private Button buttonSell;
+    private Button buttonBuy;
 
     Item(double price, int startQuantity) {
         this.basePrice = price;
         this.startingQuantity = startQuantity;
-        this.button = new Button("Sell");
+        this.buttonSell = new Button("Sell");
+        this.buttonBuy = new Button("Buy");
     }
 
     @Override
@@ -29,12 +31,23 @@ public enum Item implements Marketable {
     }
 
     @Override
-    public void setButton(Button button){
-        this.button = button;
+    public void setButtonSell(Button buttonSell){
+        this.buttonSell = buttonSell;
     }
 
     @Override
-    public Button getButton() {
-        return button;
+    public Button getButtonSell() {
+        return buttonSell;
+    }
+
+    @Override
+    public void setButtonBuy(Button buttonBuy){
+        this.buttonBuy = buttonBuy;
+    }
+
+    @Override
+    public Button getButtonBuy(){
+        return buttonBuy;
     }
 }
+
