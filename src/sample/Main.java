@@ -138,6 +138,9 @@ public class Main extends Application{
 
     private static void configFarmUI(Stage primaryStage, FarmWorldConfigurations worldConfig,
                                      AtomicBoolean toUI, Player player, GridPane grid) {
+        // HARVEST MECHANIC:
+        boolean harvested = false;
+
         Button continueToUI = new Button("Click to Continue");
         grid.add(continueToUI, 0, 6);
 
@@ -164,6 +167,39 @@ public class Main extends Application{
                 grid.add(fillEverything, 7, 0);
             }
         });
+
+        boolean refreshList = false;
+
+        if (harvested == true) {
+            refreshList = true;
+        }
+
+        Inventory inventory = new Inventory(); // INITIALIZE AN INVENTORY
+        openInventory(Inventory inventory, refreshList);
+
+    }
+
+    private static void openInventory(Inventory inventory, Boolean refreshList) {
+        ObservableList<Item> data = FXCollections.observableArrayList(
+                inventory.toArrayList() // CREATE A "toArrayList" METHOD IN INVENTORY
+        );
+
+        Label marketInventory = new Label("Inventory:");
+        TableView<Item> table1 = new TableView<Item>();
+        TableColumn itemColumn1 = new TableColumn("Name:");
+        itemColumn1.setPrefWidth(100);
+        itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
+        TableColumn costColumn1 = new TableColumn("Cost:");
+        costColumn1.setPrefWidth(100);
+        costColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
+        table1.getColumns().addAll(itemColumn1, costColumn1);
+        table1.setMaxSize(350, 200);
+
+        table1.setItems(data);
+
+        if (refreshList == true) {
+            table1.refresh();
+        }
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
@@ -280,9 +316,13 @@ public class Main extends Application{
 
 
         toMarketButton.setOnMouseClicked(e -> {
-            //Inventory inventory = new Inventory(config.getStartingSeeds(), config.getDifficulty());
-            // Market market = new Market(config.getDifficulty().toString(), inventory);
+            // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN INVENTORY
+            // CREATE AN OBSERVALE (ARRAY) LIST FOR THE ITEMS IN MARKET
+            boolean somethingBaught = false;
+            boolean somethingSold = false;
 
+            // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN YOUR INVENTORY
+            // USE SELL BUTTON
             Label marketInventory = new Label("Inventory:");
             TableView<Item> table1 = new TableView<Item>();
             TableColumn itemColumn1 = new TableColumn("Name:");
@@ -297,6 +337,14 @@ public class Main extends Application{
             table1.getColumns().addAll(itemColumn1, costColumn1, sellColumn);
             table1.setMaxSize(350, 200);
 
+            // IF ANY SELL BUTTON IS CLICKED:
+            // (1) UPDATE INVENTORY AND MARKET
+            // (2) table1.refresh();
+
+
+
+            // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET
+            // USE BUY BUTTON
             Label marketStand = new Label("Items for Sale:");
             TableView<Item> table2 = new TableView<Item>();
             TableColumn itemColumn2 = new TableColumn("Name:");
@@ -310,6 +358,10 @@ public class Main extends Application{
             buyColumn.setPrefWidth(100);
             table2.getColumns().addAll(itemColumn2, costColumn2, buyColumn);
             table2.setMaxSize(350, 200);
+
+            // IF ANY BUY BUTTON IS CLICKED:
+            // (1) UPDATE INVENTORY AND MARKET
+            // (2) table2.refresh();
 
             VBox vbox = new VBox();
             vbox.setSpacing(5);

@@ -1,5 +1,4 @@
-package sample;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +34,12 @@ public class Inventory {
         this.items.put(item, this.items.get(item) + number);
     }
 
+    // CREATE A TO ARRAY LIST METHOD
+    public ArrayList<Item> toArrayList() {
+    }
+
     public Map<Item, Integer> getItemMap() {
         return this.items;
     }
+
 }

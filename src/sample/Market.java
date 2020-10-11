@@ -1,5 +1,6 @@
 package sample;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 
@@ -31,6 +32,10 @@ public class Market {
     public int buyItem(Item item, int quantity) throws InventoryCapacityException {
         this.inventory.add(item, quantity);
         return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()));
+    }
+
+    // CREATE A TO ARRAY LIST METHOD
+    public ArrayList<Item> toArrayList() {
     }
 
 }
