@@ -199,6 +199,21 @@ public class Main extends Application {
         final TableView<Map.Entry<Item, Integer>> table = new TableView<>(items);
 
         table.getColumns().setAll(column1, column2);
+
+        VBox vbox = new VBox();
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 50, 50, 60));
+        vbox.getChildren().addAll(table);
+
+        Pane root = new Pane(vbox);
+        root.setPrefSize(425, 500);
+
+        Parent content = root;
+        Scene scene = new Scene(content);
+        Stage window = new Stage();
+        window.setTitle("Inventory");
+        window.setScene(scene);
+        window.show();
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
