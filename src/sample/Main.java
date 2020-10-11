@@ -259,7 +259,8 @@ public class Main extends Application{
     }
 
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Canvas farmCanvas, Farm farm, Stage primaryStage, Player player) {
+                                            Canvas farmCanvas, Farm farm,
+                                            Stage primaryStage, Player player) {
         Text moneyDisplay = new Text("");
         Text dayDisplay = new Text("");
         Button toMarketButton = new Button("Market");
@@ -280,8 +281,8 @@ public class Main extends Application{
 
 
         toMarketButton.setOnMouseClicked(e -> {
-            //Inventory inventory = new Inventory(config.getStartingSeeds(), config.getDifficulty());
-            // Market market = new Market(config.getDifficulty().toString(), inventory);
+            //Inventory inv = new Inventory(config.getStartingSeeds(), config.getDifficulty());
+            //Market market = new Market(config.getDifficulty().toString(), inventory);
 
             Label marketInventory = new Label("Inventory:");
             TableView<Item> table1 = new TableView<Item>();

@@ -31,7 +31,7 @@ public enum Item implements Marketable {
     }
 
     @Override
-    public void setButtonSell(Button buttonSell){
+    public void setButtonSell(Button buttonSell) {
         this.buttonSell = buttonSell;
     }
 
@@ -41,12 +41,12 @@ public enum Item implements Marketable {
     }
 
     @Override
-    public void setButtonBuy(Button buttonBuy){
+    public void setButtonBuy(Button buttonBuy) {
         this.buttonBuy = buttonBuy;
     }
 
     @Override
-    public Button getButtonBuy(){
+    public Button getButtonBuy() {
         return buttonBuy;
     }
 }
