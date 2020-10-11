@@ -1,27 +1,48 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
+import javax.swing.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
-public class Main extends Application {
+public class Main extends Application{
 
     private static Scene config;
     private static Scene farmUI;
@@ -116,7 +137,7 @@ public class Main extends Application {
     }
 
     private static void configFarmUI(Stage primaryStage, FarmWorldConfigurations worldConfig,
-                              AtomicBoolean toUI, Player player, GridPane grid) {
+                                     AtomicBoolean toUI, Player player, GridPane grid) {
         Button continueToUI = new Button("Click to Continue");
         grid.add(continueToUI, 0, 6);
 
@@ -136,7 +157,7 @@ public class Main extends Application {
                         + worldConfig.getSeason()), 0, 5);
 
                 configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm,
-                        primaryStage);
+                        primaryStage, player);
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -238,7 +259,7 @@ public class Main extends Application {
     }
 
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Canvas farmCanvas, Farm farm, Stage primaryStage) {
+                                            Canvas farmCanvas, Farm farm, Stage primaryStage, Player player) {
         Text moneyDisplay = new Text("");
         Text dayDisplay = new Text("");
         Button toMarketButton = new Button("Market");
@@ -257,22 +278,56 @@ public class Main extends Application {
         toMarketButton.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 2.0);
         toMarketButton.setFont(displayFont);
 
+
         toMarketButton.setOnMouseClicked(e -> {
-            // Go to market screen
-            Group marketGroup = new Group();
-            Canvas marketCanvas = new Canvas(WIDTH, HEIGHT);
-            Scene marketUI = new Scene(marketGroup);
+            //Inventory inventory = new Inventory(config.getStartingSeeds(), config.getDifficulty());
+            // Market market = new Market(config.getDifficulty().toString(), inventory);
 
-            /*
-             Configure market screen
-              - Show current Inventory
-              - Show available items to buy
-              - Sell item should update Inventory and current money
-              - Buy item should update Inventory and current money
-             */
+            Label marketInventory = new Label("Inventory:");
+            TableView<Item> table1 = new TableView<Item>();
+            TableColumn itemColumn1 = new TableColumn("Name:");
+            itemColumn1.setPrefWidth(100);
+            itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
+            TableColumn costColumn1 = new TableColumn("Cost:");
+            costColumn1.setPrefWidth(100);
+            costColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
+            TableColumn sellColumn = new TableColumn("Sell:");
+            sellColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("button"));
+            sellColumn.setPrefWidth(100);
+            table1.getColumns().addAll(itemColumn1, costColumn1, sellColumn);
+            table1.setMaxSize(350, 200);
 
-            primaryStage.setScene(marketUI);
+            Label marketStand = new Label("Items for Sale:");
+            TableView<Item> table2 = new TableView<Item>();
+            TableColumn itemColumn2 = new TableColumn("Name:");
+            itemColumn2.setPrefWidth(100);
+            itemColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
+            TableColumn costColumn2 = new TableColumn("Cost:");
+            costColumn2.setPrefWidth(100);
+            costColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
+            TableColumn buyColumn = new TableColumn("Buy:");
+            buyColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("button"));
+            buyColumn.setPrefWidth(100);
+            table2.getColumns().addAll(itemColumn2, costColumn2, buyColumn);
+            table2.setMaxSize(350, 200);
+
+            VBox vbox = new VBox();
+            vbox.setSpacing(5);
+            vbox.setPadding(new Insets(10, 50, 50, 60));
+            vbox.getChildren().addAll(marketInventory, table1, marketStand, table2);
+
+            Pane root = new Pane(vbox);
+            root.setPrefSize(425, 500);
+
+            Parent content = root;
+            Scene scene = new Scene(content);
+            Stage window = new Stage();
+            window.setTitle("Market");
+            window.setScene(scene);
+            window.show();
+
         });
+
 
         int plotSize = 100;
         int plotCols = 4;
@@ -298,6 +353,7 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(farmCanvas);
         farmUIGroup.getChildren().add(toMarketButton);
     }
+
 
 
     public static void main(String[] args) {

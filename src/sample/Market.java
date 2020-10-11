@@ -21,7 +21,7 @@ public class Market {
         return this.prices.get(item);
     }
 
-    public int sellItem(Item item, int quantity) throws IllegalArgumentException {
+    public int sellItem(Item item, int quantity) {
         this.inventory.remove(item, quantity);
         double variance = new Random().nextGaussian() * 5.0;
         return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()
@@ -32,4 +32,5 @@ public class Market {
         this.inventory.add(item, quantity);
         return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()));
     }
+
 }

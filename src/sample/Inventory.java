@@ -34,4 +34,8 @@ public class Inventory {
         }
         this.items.put(item, this.items.get(item) + number);
     }
+
+    public Map<Item, Integer> getItemMap() {
+        return this.items;
+    }
 }

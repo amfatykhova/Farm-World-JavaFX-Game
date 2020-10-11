@@ -4,6 +4,7 @@ Main.java: this is the main class that launches the javaFX game
 
 Player.java: this is the player object that stores:
   - name
+<<<<<<< HEAD
   - Inventory
 
 Inventory.java: this is the inventory object that stores:
@@ -47,3 +48,9 @@ Seed.java: this is an enum of Marketable seeds
 
 [Milestone]JUnit.java
   - JUnit tests for given Milestone number
+=======
+FarmWorldConfigurations.java: this is the configurations object that stores:
+  - difficulty
+  - seed
+  - season
+>>>>>>> Amelia
