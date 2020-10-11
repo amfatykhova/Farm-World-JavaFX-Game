@@ -74,3 +74,4 @@ public class FarmWorldConfigurations {
     public List<Item> getStartingSeeds() {
         return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT);
     }
+}

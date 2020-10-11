@@ -1,48 +1,32 @@
 package sample;
 
 import javafx.application.Application;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
-import javax.swing.*;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
-public class Main extends Application{
+public class Main extends Application {
 
     private static Scene config;
     private static Scene farmUI;
@@ -52,7 +36,7 @@ public class Main extends Application{
     private static final int HEIGHT = 800;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
 
         primaryStage.setTitle("Farm World");
 
@@ -103,7 +87,7 @@ public class Main extends Application{
                         "Medium",
                         "Hard"
                 );
-        final ComboBox diffBox = new ComboBox(difficultyOptions);
+        final ComboBox<?> diffBox = new ComboBox<>(difficultyOptions);
         // CREATES DROP DOWN MENU FOR SEED
         ObservableList<String> seedOptions =
                 FXCollections.observableArrayList(
@@ -111,7 +95,7 @@ public class Main extends Application{
                         "Dessert Oasis",
                         "Rolling Plains"
                 );
-        final ComboBox seedBox = new ComboBox(seedOptions);
+        final ComboBox<?> seedBox = new ComboBox<>(seedOptions);
         // CREATES DROP DOWN MENU FOR SEASON
         ObservableList<String> seasonOptions =
                 FXCollections.observableArrayList(
@@ -120,7 +104,7 @@ public class Main extends Application{
                         "Summer",
                         "Fall"
                 );
-        final ComboBox seasonBox = new ComboBox(seasonOptions);
+        final ComboBox<?> seasonBox = new ComboBox<>(seasonOptions);
 
         AtomicBoolean toUI = new AtomicBoolean(false);
 
@@ -159,8 +143,7 @@ public class Main extends Application{
                         + " " + worldConfig.getSeed() + " "
                         + worldConfig.getSeason()), 0, 5);
 
-                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm,
-                        primaryStage, player);
+                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm, player);
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -170,23 +153,24 @@ public class Main extends Application{
 
         boolean refreshList = false;
 
-        if (harvested == true) {
+        if (harvested) {
             refreshList = true;
         }
 
-        Inventory inventory = new Inventory(); // INITIALIZE AN INVENTORY
-        openInventory(Inventory inventory, refreshList);
+        System.out.println("diff: " + worldConfig);
+
+        openInventory(player.getInventory(), refreshList);
 
     }
 
     private static void openInventory(Inventory inventory, Boolean refreshList) {
-        ObservableList<Item> data = FXCollections.observableArrayList(
+        ObservableList<Map.Entry<Item, Integer>> data = FXCollections.observableArrayList(
                 inventory.toArrayList() // CREATE A "toArrayList" METHOD IN INVENTORY
         );
 
         Label marketInventory = new Label("Inventory:");
-        TableView<Item> table1 = new TableView<Item>();
-        TableColumn itemColumn1 = new TableColumn("Name:");
+        TableView<Map.Entry<Item, Integer>> table1 = new TableView<>();
+        TableColumn itemColumn1 = new TableColumn<>("Name:");
         itemColumn1.setPrefWidth(100);
         itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
         TableColumn costColumn1 = new TableColumn("Cost:");
@@ -197,7 +181,7 @@ public class Main extends Application{
 
         table1.setItems(data);
 
-        if (refreshList == true) {
+        if (refreshList) {
             table1.refresh();
         }
     }
@@ -260,8 +244,6 @@ public class Main extends Application{
         Label addSeason = new Label("Please select a season, don't leave it blank");
         Label addNameMust = new Label("Please don't forget to enter a valid name!");
 
-        AtomicBoolean validSetup = new AtomicBoolean(false);
-
         enter.setOnMouseClicked(e -> {
             boolean isDifficultyEmpty = boxes[0].getValue() == null;
             boolean isSeedEmpty = boxes[1].getValue() == null;
@@ -277,8 +259,7 @@ public class Main extends Application{
                 addSeed.setText("");
                 addSeason.setText("");
                 addNameMust.setText("");
-                boolean user = toUI.getAndSet(true);
-                validSetup.set(true);
+                toUI.getAndSet(true);
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
@@ -295,7 +276,7 @@ public class Main extends Application{
     }
 
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Canvas farmCanvas, Farm farm, Stage primaryStage, Player player) {
+                                            Canvas farmCanvas, Farm farm, Player player) {
         Text moneyDisplay = new Text("");
         Text dayDisplay = new Text("");
         Button toMarketButton = new Button("Market");
@@ -317,14 +298,14 @@ public class Main extends Application{
 
         toMarketButton.setOnMouseClicked(e -> {
             // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN INVENTORY
-            // CREATE AN OBSERVALE (ARRAY) LIST FOR THE ITEMS IN MARKET
-            boolean somethingBaught = false;
+            // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN MARKET
+            boolean somethingBought = false;
             boolean somethingSold = false;
 
             // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN YOUR INVENTORY
             // USE SELL BUTTON
             Label marketInventory = new Label("Inventory:");
-            TableView<Item> table1 = new TableView<Item>();
+            TableView<Item> table1 = new TableView<>();
             TableColumn itemColumn1 = new TableColumn("Name:");
             itemColumn1.setPrefWidth(100);
             itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));

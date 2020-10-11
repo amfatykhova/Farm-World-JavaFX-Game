@@ -36,6 +36,7 @@ public class Market {
 
     // CREATE A TO ARRAY LIST METHOD
     public ArrayList<Item> toArrayList() {
+        return null;
     }
 
 }

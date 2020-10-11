@@ -1,3 +1,5 @@
+package sample;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +37,8 @@ public class Inventory {
     }
 
     // CREATE A TO ARRAY LIST METHOD
-    public ArrayList<Item> toArrayList() {
+    public ArrayList<Map.Entry<Item, Integer>> toArrayList() {
+        return new ArrayList<Map.Entry<Item, Integer>>(this.items.entrySet());
     }
 
     public Map<Item, Integer> getItemMap() {

@@ -26,4 +26,8 @@ public class Player {
         return name;
     }
 
+    public Inventory getInventory() {
+        return this.inventory;
+    }
+
 }
