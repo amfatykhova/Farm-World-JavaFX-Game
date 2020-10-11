@@ -1,8 +1,14 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -21,6 +27,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -159,31 +166,39 @@ public class Main extends Application {
 
         System.out.println("diff: " + worldConfig);
 
-        openInventory(player.getInventory(), refreshList);
+        //openInventory(player.getInventory(), refreshList);
 
     }
 
     private static void openInventory(Inventory inventory, Boolean refreshList) {
-        ObservableList<Map.Entry<Item, Integer>> data = FXCollections.observableArrayList(
-                inventory.toArrayList() // CREATE A "toArrayList" METHOD IN INVENTORY
-        );
+        Map<Item, Integer> map = inventory.getItemMap();
 
-        Label marketInventory = new Label("Inventory:");
-        TableView<Map.Entry<Item, Integer>> table1 = new TableView<>();
-        TableColumn itemColumn1 = new TableColumn<>("Name:");
-        itemColumn1.setPrefWidth(100);
-        itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
-        TableColumn costColumn1 = new TableColumn("Cost:");
-        costColumn1.setPrefWidth(100);
-        costColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
-        table1.getColumns().addAll(itemColumn1, costColumn1);
-        table1.setMaxSize(350, 200);
+        // use fully detailed type for Map.Entry<String, String>
+        TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
+        column1.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String>, ObservableValue<String>>() {
 
-        table1.setItems(data);
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String> p) {
+                // this callback returns property for just one cell, you can't use a loop here
+                // for first column we use key
+                return new SimpleObjectProperty<>(p.getValue().getKey().toString());
+            }
+        });
 
-        if (refreshList) {
-            table1.refresh();
-        }
+        TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Cost");
+        column2.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String>, ObservableValue<String>>() {
+
+            @Override
+            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String> p) {
+                // for second column we use value
+                return new SimpleObjectProperty<>(p.getValue().getValue().toString());
+            }
+        });
+
+        ObservableList<Map.Entry<Item, Integer>> items = FXCollections.observableArrayList(map.entrySet());
+        final TableView<Map.Entry<Item, Integer>> table = new TableView<>(items);
+
+        table.getColumns().setAll(column1, column2);
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
@@ -260,6 +275,7 @@ public class Main extends Application {
                 addSeason.setText("");
                 addNameMust.setText("");
                 toUI.getAndSet(true);
+                openInventory(player.getInventory(), false);
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
