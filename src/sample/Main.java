@@ -165,6 +165,10 @@ public class Main extends Application {
         }
     }
 
+    /*
+    Figured out how to refresh hashmap items in an ObservableList from this StackOverflow link:
+    https://stackoverflow.com/questions/18618653/binding-hashmap-with-tableview-javafx
+     */
     private static void openInventory(Inventory inventory, Boolean refreshList) {
         Map<Item, Integer> map = inventory.getItemMap();
 
