@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Parent;
@@ -116,19 +117,20 @@ public class Main extends Application {
         AtomicBoolean toUI = new AtomicBoolean(false);
 
         Player player = new Player();
+        Market market = new Market();
 
         GridPane grid = configOptionsScreen(new ComboBox[] {diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
 
         // -------SCENE FarmUI--------
-        configFarmUI(primaryStage, configurationsOfWorld, toUI, player, grid);
+        configFarmUI(primaryStage, configurationsOfWorld, toUI, player, grid, market);
 
         // SHOW STAGE
         primaryStage.show();
     }
 
     private static void configFarmUI(Stage primaryStage, FarmWorldConfigurations worldConfig,
-                                     AtomicBoolean toUI, Player player, GridPane grid) {
+                                     AtomicBoolean toUI, Player player, GridPane grid, Market market) {
         // HARVEST MECHANIC:
         boolean harvested = false;
 
@@ -150,7 +152,7 @@ public class Main extends Application {
                         + " " + worldConfig.getSeed() + " "
                         + worldConfig.getSeason()), 0, 5);
 
-                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm, player);
+                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm, player, market);
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -294,7 +296,7 @@ public class Main extends Application {
     }
 
     private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Canvas farmCanvas, Farm farm, Player player) {
+                                            Canvas farmCanvas, Farm farm, Player player, Market market) {
         Text moneyDisplay = new Text("");
         Text dayDisplay = new Text("");
         Button toMarketButton = new Button("Market");
@@ -314,71 +316,10 @@ public class Main extends Application {
         toMarketButton.setFont(displayFont);
 
 
+
         toMarketButton.setOnMouseClicked(e -> {
-            // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN INVENTORY
-            // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN MARKET
-            boolean somethingBought = false;
-            boolean somethingSold = false;
-
-            // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN YOUR INVENTORY
-            // USE SELL BUTTON
-            Label marketInventory = new Label("Inventory:");
-            TableView<Item> table1 = new TableView<>();
-            TableColumn itemColumn1 = new TableColumn("Name:");
-            itemColumn1.setPrefWidth(100);
-            itemColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
-            TableColumn costColumn1 = new TableColumn("Cost:");
-            costColumn1.setPrefWidth(100);
-            costColumn1.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
-            TableColumn sellColumn = new TableColumn("Sell:");
-            sellColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("button"));
-            sellColumn.setPrefWidth(100);
-            table1.getColumns().addAll(itemColumn1, costColumn1, sellColumn);
-            table1.setMaxSize(350, 200);
-
-            // IF ANY SELL BUTTON IS CLICKED:
-            // (1) UPDATE INVENTORY AND MARKET
-            // (2) table1.refresh();
-
-
-
-            // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET
-            // USE BUY BUTTON
-            Label marketStand = new Label("Items for Sale:");
-            TableView<Item> table2 = new TableView<Item>();
-            TableColumn itemColumn2 = new TableColumn("Name:");
-            itemColumn2.setPrefWidth(100);
-            itemColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
-            TableColumn costColumn2 = new TableColumn("Cost:");
-            costColumn2.setPrefWidth(100);
-            costColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
-            TableColumn buyColumn = new TableColumn("Buy:");
-            buyColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("button"));
-            buyColumn.setPrefWidth(100);
-            table2.getColumns().addAll(itemColumn2, costColumn2, buyColumn);
-            table2.setMaxSize(350, 200);
-
-            // IF ANY BUY BUTTON IS CLICKED:
-            // (1) UPDATE INVENTORY AND MARKET
-            // (2) table2.refresh();
-
-
-
-            VBox vbox = new VBox();
-            vbox.setSpacing(5);
-            vbox.setPadding(new Insets(10, 50, 50, 60));
-            vbox.getChildren().addAll(marketInventory, table1, marketStand, table2);
-
-            Pane root = new Pane(vbox);
-            root.setPrefSize(425, 500);
-
-            Parent content = root;
-            Scene scene = new Scene(content);
-            Stage window = new Stage();
-            window.setTitle("Market");
-            window.setScene(scene);
-            window.show();
-
+            market.init(config.getDifficulty(), player.getInventory());
+            setupMarket(player);
         });
 
 
@@ -407,6 +348,90 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(toMarketButton);
     }
 
+    private static void setupMarket(Player player) {
+        // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN INVENTORY
+        // CREATE AN OBSERVABLE (ARRAY) LIST FOR THE ITEMS IN MARKET
+        boolean somethingBought = false;
+        boolean somethingSold = false;
+
+        // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN YOUR INVENTORY
+        // USE SELL BUTTON
+        Label marketInventory = new Label("Inventory:");
+
+
+
+        Map<Item, Integer> map = player.getInventory().getItemMap();
+        TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
+        column1.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getKey().toString());
+        });
+
+        TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Cost");
+        column2.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getValue().toString());
+        });
+
+        TableColumn<Item, Integer> column3 = new TableColumn<>("Sell");
+        column3.setCellFactory(new Callback<TableColumn<Item, Integer>, TableCell<Item, Integer>>() {
+                            @Override
+                            public TableCell<Item, Integer> call(final TableColumn<Item, Integer> param) {
+                                final TableCell<Item, Integer> cell = new TableCell<>() {
+
+                                    private final Button btn = new Button("Action");
+
+                                    {
+                                        btn.setOnAction((ActionEvent event) -> {
+                                            Item data = getTableView().getItems().get(getIndex());
+                                        });
+                                    }
+                                };
+                                return cell;
+                            }
+                        });
+
+        ObservableList<Map.Entry<Item, Integer>> items = FXCollections.observableArrayList(map.entrySet());
+        final TableView<Map.Entry<Item, Integer>> table1 = new TableView<>(items);
+
+        table1.getColumns().setAll(column1, column2);
+
+
+
+        // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET
+        // USE BUY BUTTON
+        Label marketStand = new Label("Items for Sale:");
+        TableView<Item> table2 = new TableView<Item>();
+        TableColumn itemColumn2 = new TableColumn("Name:");
+        itemColumn2.setPrefWidth(100);
+        itemColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("item"));
+        TableColumn costColumn2 = new TableColumn("Cost:");
+        costColumn2.setPrefWidth(100);
+        costColumn2.setCellValueFactory(new PropertyValueFactory<Item, String>("cost"));
+        TableColumn buyColumn = new TableColumn("Buy:");
+        buyColumn.setCellValueFactory(new PropertyValueFactory<Item, String>("button"));
+        buyColumn.setPrefWidth(100);
+        table2.getColumns().addAll(itemColumn2, costColumn2, buyColumn);
+        table2.setMaxSize(350, 200);
+
+        // IF ANY BUY BUTTON IS CLICKED:
+        // (1) UPDATE INVENTORY AND MARKET
+        // (2) table2.refresh();
+
+
+        VBox vbox = new VBox();
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 50, 50, 60));
+        vbox.getChildren().addAll(marketInventory, table1, marketStand, table2);
+
+        Pane root = new Pane(vbox);
+        root.setPrefSize(425, 500);
+
+        Parent content = root;
+        Scene scene = new Scene(content);
+        Stage window = new Stage();
+        window.setTitle("Market");
+        window.setScene(scene);
+        window.show();
+    }
 
 
     public static void main(String[] args) {
