@@ -163,11 +163,6 @@ public class Main extends Application {
         if (harvested) {
             refreshList = true;
         }
-
-        System.out.println("diff: " + worldConfig);
-
-        //openInventory(player.getInventory(), refreshList);
-
     }
 
     private static void openInventory(Inventory inventory, Boolean refreshList) {
@@ -175,24 +170,13 @@ public class Main extends Application {
 
         // use fully detailed type for Map.Entry<String, String>
         TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
-        column1.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String>, ObservableValue<String>>() {
-
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String> p) {
-                // this callback returns property for just one cell, you can't use a loop here
-                // for first column we use key
-                return new SimpleObjectProperty<>(p.getValue().getKey().toString());
-            }
+        column1.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getKey().toString());
         });
 
         TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Cost");
-        column2.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String>, ObservableValue<String>>() {
-
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<Map.Entry<Item, Integer>, String> p) {
-                // for second column we use value
-                return new SimpleObjectProperty<>(p.getValue().getValue().toString());
-            }
+        column2.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getValue().toString());
         });
 
         ObservableList<Map.Entry<Item, Integer>> items = FXCollections.observableArrayList(map.entrySet());
@@ -208,8 +192,7 @@ public class Main extends Application {
         Pane root = new Pane(vbox);
         root.setPrefSize(425, 500);
 
-        Parent content = root;
-        Scene scene = new Scene(content);
+        Scene scene = new Scene(root);
         Stage window = new Stage();
         window.setTitle("Inventory");
         window.setScene(scene);
@@ -374,6 +357,8 @@ public class Main extends Application {
             // IF ANY BUY BUTTON IS CLICKED:
             // (1) UPDATE INVENTORY AND MARKET
             // (2) table2.refresh();
+
+
 
             VBox vbox = new VBox();
             vbox.setSpacing(5);

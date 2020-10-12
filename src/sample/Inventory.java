@@ -36,11 +36,6 @@ public class Inventory {
         this.items.put(item, this.items.get(item) + number);
     }
 
-    // CREATE A TO ARRAY LIST METHOD
-    public ArrayList<Map.Entry<Item, Integer>> toArrayList() {
-        return new ArrayList<Map.Entry<Item, Integer>>(this.items.entrySet());
-    }
-
     public Map<Item, Integer> getItemMap() {
         return this.items;
     }
