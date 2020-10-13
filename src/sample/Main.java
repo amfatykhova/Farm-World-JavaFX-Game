@@ -1,9 +1,11 @@
 package sample;
 
 import javafx.application.Application;
+import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -362,32 +364,10 @@ public class Main extends Application {
 
         Map<Item, Integer> map = player.getInventory().getItemMap();
         TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
-        column1.setCellValueFactory(p -> {
-            return new SimpleObjectProperty<>(p.getValue().getKey().toString());
-        });
+        column1.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getKey().toString()));
 
         TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Cost");
-        column2.setCellValueFactory(p -> {
-            return new SimpleObjectProperty<>(p.getValue().getValue().toString());
-        });
-
-        TableColumn<Item, Integer> column3 = new TableColumn<>("Sell");
-        column3.setCellFactory(new Callback<TableColumn<Item, Integer>, TableCell<Item, Integer>>() {
-                            @Override
-                            public TableCell<Item, Integer> call(final TableColumn<Item, Integer> param) {
-                                final TableCell<Item, Integer> cell = new TableCell<>() {
-
-                                    private final Button btn = new Button("Action");
-
-                                    {
-                                        btn.setOnAction((ActionEvent event) -> {
-                                            Item data = getTableView().getItems().get(getIndex());
-                                        });
-                                    }
-                                };
-                                return cell;
-                            }
-                        });
+        column2.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue().getValue().toString()));
 
         ObservableList<Map.Entry<Item, Integer>> items = FXCollections.observableArrayList(map.entrySet());
         final TableView<Map.Entry<Item, Integer>> table1 = new TableView<>(items);
