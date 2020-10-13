@@ -40,9 +40,9 @@ public class Market {
         return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()));
     }
 
-    // CREATE A TO ARRAY LIST METHOD
-    public ArrayList<Item> toArrayList() {
-        return null;
+    public Map<Item, Double> getItemMap() {
+        return this.prices;
     }
+
 
 }
