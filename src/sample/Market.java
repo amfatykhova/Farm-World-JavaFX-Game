@@ -7,20 +7,12 @@ import java.util.Random;
 
 public class Market {
 
-    private Inventory inventory;
-    private Map<Item, Double> prices;
-    private FarmWorldConfigurations.Difficulty difficulty;
+    private Map<Item, Integer> prices;
 
     public Market() {
-
-    }
-
-    public void init(FarmWorldConfigurations.Difficulty diff, Inventory playerInv) {
-        this.difficulty = diff;
-        this.inventory = playerInv;
         this.prices = new HashMap<>();
         for (Item item : Item.values()) {
-            prices.put(item, item.getPrice() * difficulty.getMultiplier());
+            prices.put(item, item.getPrice());
         }
     }
 
@@ -28,20 +20,8 @@ public class Market {
         return this.prices.get(item);
     }
 
-    public int sellItem(Item item, int quantity) {
-        this.inventory.remove(item, quantity);
-        double variance = new Random().nextGaussian() * 5.0;
-        return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()
-                + variance));
-    }
-
-    public int buyItem(Item item, int quantity) throws InventoryCapacityException {
-        this.inventory.add(item, quantity);
-        return (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()));
-    }
-
-    public Map<Item, Double> getItemMap() {
+    public Map<Item, Integer> getItemMap() {
         return this.prices;
     }
-
+}
 

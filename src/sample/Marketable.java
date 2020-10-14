@@ -3,7 +3,7 @@ package sample;
 import javafx.scene.control.Button;
 
 public interface Marketable {
-    public double getPrice();
+    public int getPrice();
     public int getQuantity();
     public void setButtonSell(Button buttonSell);
     public Button getButtonSell();

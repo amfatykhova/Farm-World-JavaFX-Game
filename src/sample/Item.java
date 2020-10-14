@@ -3,17 +3,17 @@ package sample;
 import javafx.scene.control.Button;
 
 public enum Item implements Marketable {
-    MELON(20.0, 4),
-    POTATO(5.0, 20),
-    PUMPKIN(15.0, 8),
-    WHEAT(10.0, 16);
+    MELON(20, 4),
+    POTATO(5, 20),
+    PUMPKIN(15, 8),
+    WHEAT(10, 16);
 
-    private double basePrice;
+    private int basePrice;
     private int startingQuantity;
     private Button buttonSell;
     private Button buttonBuy;
 
-    Item(double price, int startQuantity) {
+    Item(int price, int startQuantity) {
         this.basePrice = price;
         this.startingQuantity = startQuantity;
         this.buttonSell = new Button("Sell");
@@ -21,7 +21,7 @@ public enum Item implements Marketable {
     }
 
     @Override
-    public double getPrice() {
+    public int getPrice() {
         return this.basePrice;
     }
 
