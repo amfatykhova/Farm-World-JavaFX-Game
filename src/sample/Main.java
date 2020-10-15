@@ -144,7 +144,7 @@ public class Main extends Application {
                         + " " + worldConfig.getSeed() + " "
                         + worldConfig.getSeason()), 0, 5);
 
-                configureFarmScreen(farmUIGroup, worldConfig, farmCanvas, farm, player, market);
+                configureFarmScreen(primaryStage, farmUIGroup, worldConfig, farmCanvas, farm, player, market, openInventory(player.getInventory(), false));
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -163,7 +163,7 @@ public class Main extends Application {
     Figured out how to refresh hashmap items in an ObservableList from this StackOverflow link:
     https://stackoverflow.com/questions/18618653/binding-hashmap-with-tableview-javafx
      */
-    private static void openInventory(Inventory inventory, Boolean refreshList) {
+    private static TableView openInventory(Inventory inventory, Boolean refreshList) {
         Map<Item, Integer> map = inventory.getItemMap();
 
         // use fully detailed type for Map.Entry<String, String>
@@ -181,20 +181,10 @@ public class Main extends Application {
         final TableView<Map.Entry<Item, Integer>> table = new TableView<>(items);
 
         table.getColumns().setAll(column1, column2);
+        table.setMaxHeight(150);
+        table.setMaxWidth(150);
+        return table;
 
-        VBox vbox = new VBox();
-        vbox.setSpacing(5);
-        vbox.setPadding(new Insets(10, 50, 50, 60));
-        vbox.getChildren().addAll(table);
-
-        Pane root = new Pane(vbox);
-        root.setPrefSize(425, 500);
-
-        Scene scene = new Scene(root);
-        Stage window = new Stage();
-        window.setTitle("Inventory");
-        window.setScene(scene);
-        window.show();
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
@@ -271,7 +261,6 @@ public class Main extends Application {
                 addSeason.setText("");
                 addNameMust.setText("");
                 toUI.getAndSet(true);
-                openInventory(player.getInventory(), false);
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
@@ -287,13 +276,13 @@ public class Main extends Application {
         return grid;
     }
 
-    private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Canvas farmCanvas, Farm farm, Player player, Market market) {
+    private static void configureFarmScreen(Stage primaryStage, Group farmUIGroup, FarmWorldConfigurations config,
+                                            Canvas farmCanvas, Farm farm, Player player, Market market, TableView tableView) {
         Text moneyDisplay = new Text("");
         Text dayDisplay = new Text("");
         Button toMarketButton = new Button("Market");
         Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
-        Image plotImg = new Image("file:images/SamplePlot.png");
+        Image plotImg = new Image("file:images/empty.png");
         GridPane farmGrid = new GridPane();
 
         farm.setMoney(config.getStartingMoney());
@@ -306,11 +295,12 @@ public class Main extends Application {
         dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
         toMarketButton.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 2.0);
         toMarketButton.setFont(displayFont);
-
-
+        Label inventoryLabel = new Label("Inventory:");
+        inventoryLabel.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 4.5);
+        tableView.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 5.0);
 
         toMarketButton.setOnMouseClicked(e -> {
-            setupMarket(player, market);
+            setupMarket(primaryStage, player, market);
         });
 
 
@@ -337,9 +327,11 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(farmGrid);
         farmUIGroup.getChildren().add(farmCanvas);
         farmUIGroup.getChildren().add(toMarketButton);
+        farmUIGroup.getChildren().add(inventoryLabel);
+        farmUIGroup.getChildren().add(tableView);
     }
 
-    private static void setupMarket(Player player, Market market) {
+    private static void setupMarket(Stage primaryStage, Player player, Market market) {
 
         Label marketInventory = new Label("Inventory:");
         Map<Item, Integer> map1 = player.getInventory().getItemMap();
@@ -357,6 +349,28 @@ public class Main extends Application {
         ComboBox<Item> inventoryBox  = new ComboBox<>();
         refreshBox(inventoryBox, marketBox, player.getInventory().getItemMap(), market.getItemMap());
         refreshBox(inventoryBox, marketBox, player.getInventory().getItemMap(), market.getItemMap());
+/*
+        //DROP DOWN MENU FOR QUANTITY (SELL)
+        Integer num1 = (Integer) inventoryBox.getValue().getQuantity();
+        ArrayList<Integer> nums1 = new ArrayList<Integer>();
+        for (int i = 1; i <= num1; i++) {
+            nums1.add(i);
+        }
+        ObservableList<Integer> numOptions1 =
+                FXCollections.observableArrayList(nums1);
+        ComboBox<Integer> numSelection1 = new ComboBox<>(numOptions1);
+
+        //DROP DOWN MENU FOR QUANTITY (BUY)
+        Integer num2 = (Integer) marketBox.getValue().getQuantity();
+        ArrayList<Integer> nums2 = new ArrayList<Integer>();
+        for (int i = 1; i <= num2; i++) {
+            nums1.add(i);
+        }
+        ObservableList<Integer> numOptions2 =
+                FXCollections.observableArrayList(nums1);
+        ComboBox<Integer> numSelection2 = new ComboBox<>(numOptions2);
+        */
+
 
         // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET
         // USE BUY BUTTON
@@ -414,13 +428,10 @@ public class Main extends Application {
 
         Pane root = new Pane();
         content.getChildren().add(root);
-        Stage window = new Stage();
-        Scene scene = new Scene(new BorderPane(scroller, null, null, null, null), 400, 400);
-        window.setScene(scene);
-        window.show();
-        window.setTitle("Market");
-        window.setScene(scene);
-        window.show();
+        Scene scene = new Scene(new BorderPane(scroller, null, null, null, null), HEIGHT, WIDTH);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
     }
 
     public static void refreshBox(ComboBox box1, ComboBox box2, Map<Item, Integer> map1, Map<Item, Integer> map2) {
