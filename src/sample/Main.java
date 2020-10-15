@@ -31,6 +31,7 @@ public class Main extends Application {
     private static Scene config;
     private static Scene farmUI;
     private static Scene marketUI;
+    private static boolean marketRun;
 
     // game canvas dimensions
     private static final int WIDTH = 800;
@@ -287,7 +288,7 @@ public class Main extends Application {
         GridPane farmGrid = new GridPane();
 
         farm.setMoney(config.getStartingMoney());
-        moneyDisplay.setText("Money: $" + farm.getMoney());
+        moneyDisplay.setText("Money: $" + player.getBalance());
         moneyDisplay.setFont(displayFont);
         moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
         dayDisplay.setText("Day " + farm.getDay());
@@ -301,7 +302,7 @@ public class Main extends Application {
         tableView.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 5.0);
 
         toMarketButton.setOnMouseClicked(e -> {
-            setupMarket(primaryStage, player, market);
+            setupMarket(primaryStage, player, market, moneyDisplay);
         });
 
 
@@ -332,7 +333,7 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(tableView);
     }
 
-    private static void setupMarket(Stage primaryStage, Player player, Market market) {
+    private static void setupMarket(Stage primaryStage, Player player, Market market, Text moneyDisplay) {
 
         Label marketInventory = new Label("Inventory:");
         Map<Item, Integer> map1 = player.getInventory().getItemMap();
@@ -346,6 +347,7 @@ public class Main extends Application {
         Button returnToUI = new Button("Return to Farm UI");
         returnToUI.setOnMouseClicked(e -> {
             primaryStage.setScene(farmUI);
+
         });
 
         table1.getColumns().setAll(column1Inventory, column2Inventory);
@@ -417,6 +419,9 @@ public class Main extends Application {
         marketUI = new Scene(new BorderPane(scroller, null, null, null, null), HEIGHT, WIDTH);
         primaryStage.setScene(marketUI);
         primaryStage.show();
+
+        moneyDisplay.setText(null);
+        moneyDisplay.setText("Money: $" + player.getBalance());
 
     }
 
