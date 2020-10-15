@@ -30,6 +30,7 @@ public class Main extends Application {
 
     private static Scene config;
     private static Scene farmUI;
+    private static Scene marketUI;
 
     // game canvas dimensions
     private static final int WIDTH = 800;
@@ -342,6 +343,11 @@ public class Main extends Application {
         ObservableList<Map.Entry<Item, Integer>> items1 = FXCollections.observableArrayList(map1.entrySet());
         final TableView<Map.Entry<Item, Integer>> table1 = new TableView<>(items1);
 
+        Button returnToUI = new Button("Return to Farm UI");
+        returnToUI.setOnMouseClicked(e -> {
+            primaryStage.setScene(farmUI);
+        });
+
         table1.getColumns().setAll(column1Inventory, column2Inventory);
 
         //DROP DOWN MENUS FOR INVENTORY AND MARKET
@@ -349,27 +355,7 @@ public class Main extends Application {
         ComboBox<Item> inventoryBox  = new ComboBox<>();
         refreshBox(inventoryBox, marketBox, player.getInventory().getItemMap(), market.getItemMap());
         refreshBox(inventoryBox, marketBox, player.getInventory().getItemMap(), market.getItemMap());
-/*
-        //DROP DOWN MENU FOR QUANTITY (SELL)
-        Integer num1 = (Integer) inventoryBox.getValue().getQuantity();
-        ArrayList<Integer> nums1 = new ArrayList<Integer>();
-        for (int i = 1; i <= num1; i++) {
-            nums1.add(i);
-        }
-        ObservableList<Integer> numOptions1 =
-                FXCollections.observableArrayList(nums1);
-        ComboBox<Integer> numSelection1 = new ComboBox<>(numOptions1);
 
-        //DROP DOWN MENU FOR QUANTITY (BUY)
-        Integer num2 = (Integer) marketBox.getValue().getQuantity();
-        ArrayList<Integer> nums2 = new ArrayList<Integer>();
-        for (int i = 1; i <= num2; i++) {
-            nums1.add(i);
-        }
-        ObservableList<Integer> numOptions2 =
-                FXCollections.observableArrayList(nums1);
-        ComboBox<Integer> numSelection2 = new ComboBox<>(numOptions2);
-        */
 
 
         // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET
@@ -422,14 +408,14 @@ public class Main extends Application {
 
 
         VBox content = new VBox(5);
-        content.getChildren().addAll(marketInventory, table1, inventoryBox, sellButton, marketStand, table2, marketBox, buyButton);
+        content.getChildren().addAll(returnToUI, marketInventory, table1, inventoryBox, sellButton, marketStand, table2, marketBox, buyButton);
         ScrollPane scroller = new ScrollPane(content);
         scroller.setFitToWidth(true);
 
         Pane root = new Pane();
         content.getChildren().add(root);
-        Scene scene = new Scene(new BorderPane(scroller, null, null, null, null), HEIGHT, WIDTH);
-        primaryStage.setScene(scene);
+        marketUI = new Scene(new BorderPane(scroller, null, null, null, null), HEIGHT, WIDTH);
+        primaryStage.setScene(marketUI);
         primaryStage.show();
 
     }
