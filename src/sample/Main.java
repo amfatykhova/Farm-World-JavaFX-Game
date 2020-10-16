@@ -1,6 +1,8 @@
 package sample;
 
 import javafx.application.Application;
+
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -11,36 +13,44 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class Main extends Application {
 
-    private Scene welcome;
-    private Scene config;
-    private Scene farmUI;
+    private static Scene config;
+    private static Scene farmUI;
+    private static Scene marketUI;
+    private static boolean marketRun;
 
     // game canvas dimensions
-    private static int width = 800;
-    private static int height = 800;
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 800;
+
+    private static final Font DISPLAY_FONT = Font.font("Verdana", FontWeight.MEDIUM, 24);
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
 
         primaryStage.setTitle("Farm World");
 
         // -------SCENE WELCOME-------
         Group welcomeGroup = new Group();
-        welcome = new Scene(welcomeGroup);
+        Scene welcome = new Scene(welcomeGroup);
         primaryStage.setScene(welcome);
-        Canvas welcomeCanvas = new Canvas(width, height);
+        Canvas welcomeCanvas = new Canvas(WIDTH, HEIGHT);
         welcomeGroup.getChildren().add(welcomeCanvas);
         GraphicsContext gc = welcomeCanvas.getGraphicsContext2D();
 
@@ -72,12 +82,9 @@ public class Main extends Application {
         Group configGroup = new Group();
         config = new Scene(configGroup);
         // switch when button "start" clicked
-        start.setOnMouseClicked(e -> {
-            primaryStage.setScene(config);
-        });
-        Canvas configCanvas = new Canvas(width, height);
-        // CREATES A PLAYER OBJECT
-        Player player = new Player();
+
+        start.setOnMouseClicked(e -> primaryStage.setScene(config));
+        Canvas configCanvas = new Canvas(WIDTH, HEIGHT);
         // CREATES A NEW FARM WORLD CONFIGURATIONS OBJECT
         FarmWorldConfigurations configurationsOfWorld = new FarmWorldConfigurations();
         // CREATES DROP DOWN MENU FOR DIFFICULTY
@@ -87,7 +94,7 @@ public class Main extends Application {
                         "Medium",
                         "Hard"
                 );
-        final ComboBox diffBox = new ComboBox(difficultyOptions);
+        final ComboBox<?> diffBox = new ComboBox<>(difficultyOptions);
         // CREATES DROP DOWN MENU FOR SEED
         ObservableList<String> seedOptions =
                 FXCollections.observableArrayList(
@@ -95,7 +102,7 @@ public class Main extends Application {
                         "Dessert Oasis",
                         "Rolling Plains"
                 );
-        final ComboBox seedBox = new ComboBox(seedOptions);
+        final ComboBox<?> seedBox = new ComboBox<>(seedOptions);
         // CREATES DROP DOWN MENU FOR SEASON
         ObservableList<String> seasonOptions =
                 FXCollections.observableArrayList(
@@ -104,23 +111,34 @@ public class Main extends Application {
                         "Summer",
                         "Fall"
                 );
-        final ComboBox seasonBox = new ComboBox(seasonOptions);
+
+        final ComboBox<?> seasonBox = new ComboBox<>(seasonOptions);
 
         AtomicBoolean toUI = new AtomicBoolean(false);
+
+        Player player = new Player();
+        Market market = new Market();
 
         GridPane grid = configOptionsScreen(new ComboBox[] {diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
 
         // -------SCENE FarmUI--------
+        configFarmUI(primaryStage, configurationsOfWorld, toUI, player, grid, market);
+
+        // SHOW STAGE
+        primaryStage.show();
+    }
+
+    private static void configFarmUI(Stage primaryStage, FarmWorldConfigurations worldConfig,
+                                     AtomicBoolean toUI, Player player, GridPane grid,
+                                     Market market) {
+
         Button continueToUI = new Button("Click to Continue");
         grid.add(continueToUI, 0, 6);
 
         Group farmUIGroup = new Group();
-        Canvas farmCanvas = new Canvas(width, height);
+        Canvas farmCanvas = new Canvas(WIDTH, HEIGHT);
         farmUI = new Scene(farmUIGroup);
-        Farm farm = new Farm(0);
-        Text moneyDisplay = new Text("");
-        Text dayDisplay = new Text("");
 
         Label fillEverything = new Label("Please fill in every field correctly to continue!");
 
@@ -128,35 +146,62 @@ public class Main extends Application {
             // GOES TO USER INTERFACE SCENE
             boolean user = toUI.getAndSet(true);
             if (user) {
-                grid.add(new Label(player.getName() + " " + configurationsOfWorld.getDifficulty()
-                        + " " + configurationsOfWorld.getSeed() + " "
-                        + configurationsOfWorld.getSeason()), 0, 5);
+                grid.add(new Label(player.getName() + " " + worldConfig.getDifficulty()
+                        + " " + worldConfig.getSeed() + " "
+                        + worldConfig.getSeason()), 0, 5);
 
-                configureFarmScreen(farmUIGroup, configurationsOfWorld, moneyDisplay,
-                        dayDisplay, farmCanvas, farm);
+                configureFarmScreen(primaryStage, farmUIGroup, farmCanvas,
+                        player, market, openInventory(player.getInventory()));
 
                 primaryStage.setScene(farmUI);
             } else {
                 grid.add(fillEverything, 7, 0);
             }
         });
+    }
 
-        // SHOW STAGE
-        primaryStage.show();
+    /*
+    Figured out how to refresh hashmap items in an ObservableList from this StackOverflow link:
+    https://stackoverflow.com/questions/18618653/binding-hashmap-with-tableview-javafx
+     */
+    private static TableView openInventory(Inventory inventory) {
+        Map<Item, Integer> map = inventory.getItemMap();
+
+        // use fully detailed type for Map.Entry<String, String>
+        TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
+        column1.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getKey().toString());
+        });
+
+        TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Quantity");
+        column2.setCellValueFactory(p -> {
+            return new SimpleObjectProperty<>(p.getValue().getValue().toString());
+        });
+
+        ObservableList<Map.Entry<Item, Integer>> items =
+                FXCollections.observableArrayList(map.entrySet());
+        final TableView<Map.Entry<Item, Integer>> table = new TableView<>(items);
+
+        table.getColumns().setAll(column1, column2);
+        table.setMaxHeight(150);
+        table.setMaxWidth(150);
+        return table;
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
                                                 Canvas configCanvas, AtomicBoolean toUI,
-                                                FarmWorldConfigurations world, Player player) {
-        // CREATES TEXTFIELD AND BUTTON FOR NAME ENTRY
+                                                FarmWorldConfigurations world, Player player)
+            throws RuntimeException {
+
+        // CREATES TEXT FIELD AND BUTTON FOR NAME ENTRY
         TextField nameEntry = new TextField();
         // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
+        GridPane grid = new GridPane();
         Button enter = new Button("Enter Game Configurations");
         Button nameEnter = new Button("Enter Name");
         Label nameLabel = new Label("Enter Name: ");
 
         // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
-        GridPane grid = new GridPane();
         grid.setVgap(4);
         grid.setHgap(10);
         grid.setPadding(new Insets(5, 5, 5, 5));
@@ -208,15 +253,15 @@ public class Main extends Application {
 
             boolean itsOk = itsAllGood.getAndSet(true);
             if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
-                world.setDifficulty(boxes[0].getValue().toString());
+                world.setDifficulty(boxes[0].getValue().toString().toUpperCase());
                 world.setSeed(boxes[1].getValue().toString());
                 world.setSeason(boxes[2].getValue().toString());
-                player.setName(nameEntry.getText());
+                player.init(nameEntry.getText(), world.getStartingSeeds(), world.getDifficulty());
                 addDiff.setText("");
                 addSeed.setText("");
                 addSeason.setText("");
                 addNameMust.setText("");
-                boolean user = toUI.getAndSet(true);
+                toUI.getAndSet(true);
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
@@ -232,33 +277,31 @@ public class Main extends Application {
         return grid;
     }
 
-    private static void configureFarmScreen(Group farmUIGroup, FarmWorldConfigurations config,
-                                            Text moneyDisplay, Text dayDisplay, Canvas farmCanvas,
-                                            Farm farm) {
-        int startingMoney = 0;
-        switch (config.getDifficulty()) {
-        case "Medium":
-            startingMoney = 750;
-            break;
-        case "Hard":
-            startingMoney = 500;
-            break;
-        default:
-            startingMoney = 1000;
-        }
-        farm.setMoney(startingMoney);
-        moneyDisplay.setText("Money: $" + farm.getMoney());
-        Font displayFont = Font.font("Verdana", FontWeight.MEDIUM, 24);
-        moneyDisplay.setFont(displayFont);
-        moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
-        dayDisplay.setText("Day " + farm.getDay());
-        dayDisplay.setFont(displayFont);
-        dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
-        dayDisplay.setTranslateX(width - dayDisplay.getLayoutBounds().getWidth());
+    private static void configureFarmScreen(Stage primaryStage, Group farmUIGroup,
+                                            Canvas farmCanvas, Player player, Market market,
+                                            TableView<Map.Entry<Item, Integer>> tableView) {
+        Text moneyDisplay = new Text("Money: $" + player.getBalance());
+        Text dayDisplay = new Text("Day " + player.getDay());
+        Button toMarketButton = new Button("Market");
 
-        GraphicsContext gc2 = farmCanvas.getGraphicsContext2D();
-        Image plotImg = new Image("file:images/SamplePlot.png");
         GridPane farmGrid = new GridPane();
+
+        moneyDisplay.setFont(DISPLAY_FONT);
+        moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
+        dayDisplay.setFont(DISPLAY_FONT);
+        dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
+        dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
+        toMarketButton.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 2.0);
+        toMarketButton.setFont(DISPLAY_FONT);
+        Label inventoryLabel = new Label("Inventory:");
+        inventoryLabel.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 4.5);
+        tableView.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 5.0);
+
+        toMarketButton.setOnMouseClicked(e -> {
+            moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
+            setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
+            System.out.println(player.getBalance());
+        });
 
         int plotSize = 100;
         int plotCols = 4;
@@ -266,10 +309,31 @@ public class Main extends Application {
 
         for (int i = 0; i < plotCols; i++) {
             for (int j = 0; j < plotRows; j++) {
-                ImageView plotView = new ImageView(plotImg);
-                plotView.setFitHeight(plotSize);
-                plotView.setFitWidth(plotSize);
-                farmGrid.add(plotView, i, j);
+                Random rand = new Random();
+                int maturity = rand.nextInt(4) + 1; // 1..4
+                int type = rand.nextInt(4); // 0..3
+                Item plant = Item.values()[type];
+                Plot newPlot = new Plot(plant, Maturity.values()[maturity]);
+                Button plotButton = newPlot.asButton(plotSize);
+                plotButton.setOnMouseClicked(e -> {
+                    if (newPlot.getMaturity().equals(Maturity.MATURE)) {
+                        try {
+                            player.getInventory().add(plant, 1);
+                            System.out.println("Plant to harvest: " + plant.name());
+                            newPlot.harvest();
+                            System.out.println(player.getInventory().getItemMap().toString());
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            ImageView emptyView = new ImageView(new Image("file:images/empty.PNG"));
+                            emptyView.setFitHeight(plotSize);
+                            emptyView.setFitWidth(plotSize);
+                            plotButton.setGraphic(emptyView);
+                        } catch (InventoryCapacityException ex) {
+                            System.out.println("Harvesting failed with error: " + ex.getMessage());
+                        }
+                    }
+                });
+                farmGrid.add(plotButton, i, j);
             }
         }
 
@@ -280,8 +344,126 @@ public class Main extends Application {
 
         farmUIGroup.getChildren().add(moneyDisplay);
         farmUIGroup.getChildren().add(dayDisplay);
-        farmUIGroup.getChildren().add(farmGrid);
         farmUIGroup.getChildren().add(farmCanvas);
+        farmUIGroup.getChildren().add(farmGrid);
+        farmUIGroup.getChildren().add(toMarketButton);
+        farmUIGroup.getChildren().add(inventoryLabel);
+        farmUIGroup.getChildren().add(tableView);
+    }
+
+    private static void setupMarket(Stage primaryStage, Player player, Market market,
+                                    Text moneyDisplay,
+                                    TableView<Map.Entry<Item, Integer>> tableView,
+                                    Group farmUIGroup) {
+
+        moneyDisplay.setText("$" + player.getBalance());
+        Text marketInventory = new Text("                                Inventory:");
+        Map<Item, Integer> map1 = player.getInventory().getItemMap();
+        TableColumn<Map.Entry<Item, Integer>, String> column1Inventory =
+                new TableColumn<>("Item");
+        column1Inventory.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+        );
+        TableColumn<Map.Entry<Item, Integer>, String> column2Inventory =
+                new TableColumn<>("Quantity");
+        column2Inventory.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getValue().toString())
+        );
+        ObservableList<Map.Entry<Item, Integer>> items1 =
+                FXCollections.observableArrayList(map1.entrySet());
+        final TableView<Map.Entry<Item, Integer>> inventoryTable = new TableView<>(items1);
+
+        Button returnToUI = new Button("Return to Farm UI");
+        returnToUI.setOnMouseClicked(e -> {
+            moneyDisplay.setText("Money: $" + player.getBalance());
+            System.out.println(player.getBalance());
+            tableView.getColumns().get(0).setVisible(false);
+            tableView.getColumns().get(0).setVisible(true);
+            primaryStage.setScene(farmUI);
+            moneyDisplay.setFont(DISPLAY_FONT);
+            moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() - 60);
+            farmUIGroup.getChildren().add(moneyDisplay);
+        });
+
+        inventoryTable.getColumns().setAll(column1Inventory, column2Inventory);
+
+        //DROP DOWN MENUS FOR INVENTORY AND MARKET
+        ComboBox<Item> marketBox  = new ComboBox<>();
+        ComboBox<Item> inventoryBox  = new ComboBox<>();
+        refreshBox(inventoryBox, player.getInventory().getItemMap());
+        refreshBox(marketBox, market.getItemMap());
+
+        // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET USE BUY BUTTON
+        Label marketStand = new Label("Items for Sale:");
+        Map<Item, Integer> map2 = market.getItemMap();
+        TableColumn<Map.Entry<Item, Integer>, String> column1Market = new TableColumn<>("Item");
+        column1Market.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+        );
+        TableColumn<Map.Entry<Item, Integer>, String> column2Market = new TableColumn<>("Price");
+        column2Market.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getValue().toString())
+        );
+        ObservableList<Map.Entry<Item, Integer>> items2 =
+                FXCollections.observableArrayList(map2.entrySet());
+        final TableView<Map.Entry<Item, Integer>> saleTable = new TableView<>(items2);
+
+        saleTable.getColumns().setAll(column1Market, column2Market);
+
+        // SELL BUTTON
+        Button sellButton = new Button("Sell");
+        sellButton.setOnMouseClicked(e -> {
+            Item sellItem = inventoryBox.getValue();
+            if (sellItem != null) {
+                player.sellItem(sellItem, 1);
+                refreshBox(inventoryBox, player.getInventory().getItemMap());
+                refreshBox(marketBox, market.getItemMap());
+                inventoryTable.getColumns().get(0).setVisible(false);
+                inventoryTable.getColumns().get(0).setVisible(true);
+                saleTable.getColumns().get(0).setVisible(false);
+                saleTable.getColumns().get(0).setVisible(true);
+                moneyDisplay.setText("$" + player.getBalance());
+            }
+        });
+
+        //BUY BUTTON
+        Button buyButton = new Button("Buy");
+        buyButton.setOnMouseClicked(e -> {
+            Item buyItem = marketBox.getValue();
+            if (buyItem != null) {
+                try {
+                    player.buyItem(buyItem, 1);
+                    refreshBox(inventoryBox, player.getInventory().getItemMap());
+                    refreshBox(marketBox, market.getItemMap());
+                    inventoryTable.getColumns().get(0).setVisible(false);
+                    inventoryTable.getColumns().get(0).setVisible(true);
+                    saleTable.getColumns().get(0).setVisible(false);
+                    saleTable.getColumns().get(0).setVisible(true);
+                    moneyDisplay.setText("$" + player.getBalance());
+                } catch (InsufficientFundsException | InventoryCapacityException ex) {
+                    System.out.println("Failed to buy item: " + ex.getMessage());
+                }
+            }
+        });
+
+        VBox content = new VBox(5);
+        content.getChildren().addAll(returnToUI, moneyDisplay, marketInventory, inventoryTable,
+                inventoryBox, sellButton, marketStand, saleTable, marketBox, buyButton);
+        ScrollPane scroller = new ScrollPane(content);
+        scroller.setFitToWidth(true);
+
+        Pane root = new Pane();
+        content.getChildren().add(root);
+        marketUI = new Scene(new BorderPane(scroller, null, null, null, null), HEIGHT, WIDTH);
+        primaryStage.setScene(marketUI);
+        primaryStage.show();
+    }
+
+    public static void refreshBox(ComboBox box, Map<Item, Integer> map) {
+        for (Map.Entry<Item, Integer> e : map.entrySet()) {
+            box.getItems().remove(e.getKey());
+            box.getItems().add(e.getKey());
+        }
     }
 
 
@@ -289,3 +471,4 @@ public class Main extends Application {
         launch(args);
     }
 }
+
