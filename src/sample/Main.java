@@ -351,7 +351,8 @@ public class Main extends Application {
 
     private static void setupMarket(Stage primaryStage, Player player, Market market,
                                     Text moneyDisplay,
-                                    TableView<Map.Entry<Item, Integer>> tableView, Group farmUIGroup) {
+                                    TableView<Map.Entry<Item, Integer>> tableView,
+                                    Group farmUIGroup) {
 
         moneyDisplay.setText("$" + player.getBalance());
         Text marketInventory = new Text("                                Inventory:");
