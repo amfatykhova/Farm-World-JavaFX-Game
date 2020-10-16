@@ -1,6 +1,5 @@
 package sample;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,7 @@ public class Inventory {
     private int size;
 
     public Inventory(List<Item> startItems, FarmWorldConfigurations.Difficulty difficulty) {
-        this.capacity = (int) (50 * difficulty.getMultiplier());
+        this.capacity = (int) (100 * difficulty.getMultiplier());
         this.items = new HashMap<Item, Integer>(this.capacity);
         for (Item s : startItems) {
             int quantity = (int) (s.getQuantity() * difficulty.getMultiplier());
@@ -35,10 +34,11 @@ public class Inventory {
     public void add(Item item, int number) throws InventoryCapacityException {
         if (this.size + number > this.capacity) {
             throw new InventoryCapacityException("The player's inventory (size = "
-                    + this.items.size() + ") does not have enough capacity to add "
-                    + number + " " + item.name() + "'s ");
+                    + this.size + ") does not have enough capacity (capacity = "
+                    + this.capacity + ") to add " + number + " " + item.name() + "'s ");
         }
-        System.out.println("New quantity of " + item.name() + " = " + (this.items.get(item) + number));
+        System.out.println("New quantity of " + item.name() + " = "
+                + (this.items.get(item) + number));
         this.items.put(item, this.items.get(item) + number);
         this.size += number;
     }

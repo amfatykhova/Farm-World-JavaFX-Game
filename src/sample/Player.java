@@ -7,13 +7,15 @@ import java.util.Random;
 player class
  */
 public class Player {
+
     private String name;
     private Inventory inventory;
     private FarmWorldConfigurations.Difficulty difficulty;
     private int balance;
+    private int day;
 
     public Player() {
-
+        this.day = 1; // Start on day
     }
 
     public void init(String name, List<Item> items, FarmWorldConfigurations.Difficulty diff) {
@@ -31,19 +33,25 @@ public class Player {
         try {
             this.inventory.remove(item, quantity);
             double variance = new Random().nextGaussian() * 5.0;
-            this.balance += (int) (((double) quantity) * (item.getPrice() * this.difficulty.getMultiplier()
-                    + variance));
+            this.balance += (int) (((double) quantity) * (item.getPrice()
+                    * this.difficulty.getMultiplier() + variance));
         } catch (IllegalArgumentException e) {
             System.out.println("Cannot sell item. You don't have any " + item.name());
         }
     }
 
-    public void buyItem(Item item, int quantity) throws InsufficientFundsException, InventoryCapacityException {
+    public void buyItem(Item item, int quantity) throws InsufficientFundsException,
+            InventoryCapacityException {
         if (item.getPrice() * quantity > this.balance) {
-            throw new InsufficientFundsException("Player does not have enough money to buy " + quantity + " " + item.name());
+            throw new InsufficientFundsException("Player does not have enough money to buy "
+                    + quantity + " " + item.name());
         }
         this.inventory.add(item, quantity);
         this.balance -= (int) (((double) quantity) * item.getPrice());
+    }
+
+    public void incrementDay() {
+        day++;
     }
 
     public Inventory getInventory() {
@@ -53,5 +61,10 @@ public class Player {
     public int getBalance() {
         return this.balance;
     }
+
+    public int getDay() {
+        return this.day;
+    }
+
 
 }
