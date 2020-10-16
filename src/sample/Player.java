@@ -66,5 +66,7 @@ public class Player {
         return this.day;
     }
 
-
+    public void setName(String name) {
+        this.name = name;
+    }
 }
