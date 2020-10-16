@@ -1,6 +1,7 @@
 package sample;
 
 import javafx.application.Application;
+
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -81,6 +82,7 @@ public class Main extends Application {
         Group configGroup = new Group();
         config = new Scene(configGroup);
         // switch when button "start" clicked
+
         start.setOnMouseClicked(e -> primaryStage.setScene(config));
         Canvas configCanvas = new Canvas(WIDTH, HEIGHT);
         // CREATES A NEW FARM WORLD CONFIGURATIONS OBJECT
@@ -109,6 +111,7 @@ public class Main extends Application {
                         "Summer",
                         "Fall"
                 );
+
         final ComboBox<?> seasonBox = new ComboBox<>(seasonOptions);
 
         AtomicBoolean toUI = new AtomicBoolean(false);
@@ -183,7 +186,6 @@ public class Main extends Application {
         table.setMaxHeight(150);
         table.setMaxWidth(150);
         return table;
-
     }
 
     private static GridPane configOptionsScreen(ComboBox[] boxes, Group configGroup,
