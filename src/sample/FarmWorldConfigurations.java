@@ -8,6 +8,7 @@ difficulty, starting seed, starting season
  */
 public class FarmWorldConfigurations {
 
+
     enum Difficulty {
         EASY(1.0),
         MEDIUM(0.75),
@@ -30,6 +31,7 @@ public class FarmWorldConfigurations {
     // barrow hills, dessert oasis, rolling plains
     private String season;
     // winter, spring, summer, fall
+
     private List<Item> startingSeeds;
 
     public FarmWorldConfigurations() {
@@ -41,7 +43,6 @@ public class FarmWorldConfigurations {
         this.seed = seed;
         this.season = season;
     }
-
 
     public Difficulty getDifficulty() {
         return difficulty;
@@ -74,5 +75,4 @@ public class FarmWorldConfigurations {
     public List<Item> getStartingSeeds() {
         return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT);
     }
-
 }
