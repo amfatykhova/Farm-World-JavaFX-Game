@@ -296,7 +296,9 @@ public class Main extends Application {
         tableView.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 5.0);
 
         toMarketButton.setOnMouseClicked(e -> {
-            setupMarket(primaryStage, player, market, moneyDisplay, tableView);
+            moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
+            setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
+            System.out.println(player.getBalance());
         });
 
         int plotSize = 100;
@@ -349,10 +351,10 @@ public class Main extends Application {
 
     private static void setupMarket(Stage primaryStage, Player player, Market market,
                                     Text moneyDisplay,
-                                    TableView<Map.Entry<Item, Integer>> tableView) {
+                                    TableView<Map.Entry<Item, Integer>> tableView, Group farmUIGroup) {
 
         moneyDisplay.setText("$" + player.getBalance());
-        Text marketInventory = new Text("Inventory:");
+        Text marketInventory = new Text("                                Inventory:");
         Map<Item, Integer> map1 = player.getInventory().getItemMap();
         TableColumn<Map.Entry<Item, Integer>, String> column1Inventory =
                 new TableColumn<>("Item");
@@ -371,9 +373,13 @@ public class Main extends Application {
         Button returnToUI = new Button("Return to Farm UI");
         returnToUI.setOnMouseClicked(e -> {
             moneyDisplay.setText("Money: $" + player.getBalance());
+            System.out.println(player.getBalance());
             tableView.getColumns().get(0).setVisible(false);
             tableView.getColumns().get(0).setVisible(true);
             primaryStage.setScene(farmUI);
+            moneyDisplay.setFont(DISPLAY_FONT);
+            moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() - 60);
+            farmUIGroup.getChildren().add(moneyDisplay);
         });
 
         inventoryTable.getColumns().setAll(column1Inventory, column2Inventory);
@@ -437,10 +443,9 @@ public class Main extends Application {
             }
         });
 
-        VBox content = new VBox(15);
-        content.getChildren().addAll(returnToUI, marketInventory, inventoryTable,
-                inventoryBox, sellButton, marketStand, saleTable, marketBox, buyButton,
-                moneyDisplay);
+        VBox content = new VBox(5);
+        content.getChildren().addAll(returnToUI, moneyDisplay, marketInventory, inventoryTable,
+                inventoryBox, sellButton, marketStand, saleTable, marketBox, buyButton);
         ScrollPane scroller = new ScrollPane(content);
         scroller.setFitToWidth(true);
 
@@ -463,3 +468,4 @@ public class Main extends Application {
         launch(args);
     }
 }
+
