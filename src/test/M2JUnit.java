@@ -1,4 +1,3 @@
-package sample;
 /*
     JUnit tests for Milestone 2 Code
 
@@ -8,6 +7,7 @@ package sample;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class M2JUnit {

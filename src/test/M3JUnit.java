@@ -1,5 +1,3 @@
-package sample;
-
 /*
     JUnit tests for Milestone 3 Code
     @author Dhruv Patel
@@ -10,6 +8,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 import javafx.scene.control.Button;
+
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
