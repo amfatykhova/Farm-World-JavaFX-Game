@@ -1,5 +1,3 @@
-package sample;
-
 import java.util.List;
 import java.util.Random;
 
@@ -50,8 +48,8 @@ public class Player {
         this.balance -= (int) (((double) quantity) * item.getPrice());
     }
 
-    public void incrementDay() {
-        day++;
+    public int incrementDay() {
+        return ++this.day;
     }
 
     public Inventory getInventory() {

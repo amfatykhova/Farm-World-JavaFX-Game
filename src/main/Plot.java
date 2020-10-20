@@ -1,5 +1,3 @@
-package sample;
-
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -17,7 +15,7 @@ public class Plot {
     public Button asButton(int plotSize) {
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
-        System.out.println("Setting plot with " + plantName + "to " + "file:images/" + plantName
+        System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
                 + num + ".PNG");
         ImageView plotView = null;
         if (this.maturity.equals(Maturity.EMPTY)) {

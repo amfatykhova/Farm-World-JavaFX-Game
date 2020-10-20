@@ -1,10 +1,10 @@
 <?import javafx.scene.layout.GridPane?>
-<GridPane fx:controller="sample.Controller"
+<GridPane fx:controller="main.Controller"
 =======
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.GridPane?>
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<GridPane fx:controller="sample.Main"
+<GridPane fx:controller="main.Main"
 </GridPane>
