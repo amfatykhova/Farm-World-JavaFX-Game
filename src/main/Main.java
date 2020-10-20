@@ -281,6 +281,7 @@ public class Main extends Application {
         Text moneyDisplay = new Text("Money: $" + player.getBalance());
         Text dayDisplay = new Text("Day " + player.getDay());
         Button toMarketButton = new Button("Market");
+        Button nextDayButton = new Button("Next Day");
 
         GridPane farmGrid = new GridPane();
 
@@ -294,11 +295,19 @@ public class Main extends Application {
         Label inventoryLabel = new Label("Inventory:");
         inventoryLabel.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 4.5);
         tableView.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 5.0);
+        nextDayButton.setFont(DISPLAY_FONT);
+        nextDayButton.setTranslateY(HEIGHT - moneyDisplay.getLayoutBounds().getHeight() * 2.0);
+
 
         toMarketButton.setOnMouseClicked(e -> {
             moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
             setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
             System.out.println(player.getBalance());
+        });
+
+        nextDayButton.setOnMouseClicked(e -> {
+            dayDisplay.setText("Day " + player.incrementDay());
+            dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
         });
 
         int plotSize = 100;
@@ -347,6 +356,7 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(toMarketButton);
         farmUIGroup.getChildren().add(inventoryLabel);
         farmUIGroup.getChildren().add(tableView);
+        farmUIGroup.getChildren().add(nextDayButton);
     }
 
     private static void setupMarket(Stage primaryStage, Player player, Market market,
