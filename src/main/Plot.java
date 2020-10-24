@@ -61,5 +61,5 @@ public class Plot {
             System.out.println("new seed type planted: PUMPKIN");
 
         }
-    }
+
 }
