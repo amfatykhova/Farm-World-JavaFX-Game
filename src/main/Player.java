@@ -33,7 +33,7 @@ public class Player {
             double variance = new Random().nextGaussian() * 5.0;
             this.balance += (int) (((double) quantity) * (item.getPrice()
                     * this.difficulty.getMultiplier() + variance));
-        } catch (IllegalArgumentException e) {
+        } catch (InsufficientItemsException e) {
             System.out.println("Cannot sell item. You don't have any " + item.name());
         }
     }

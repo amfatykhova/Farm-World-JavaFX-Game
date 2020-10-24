@@ -17,10 +17,10 @@ public class Inventory {
         }
     }
 
-    public void remove(Item item, int number) throws IllegalArgumentException {
+    public void remove(Item item, int number) throws InsufficientItemsException {
         int existingQuantity = this.items.get(item);
         if (existingQuantity < number) {
-            throw new IllegalArgumentException("Cannot remove " + number + " " + item.name()
+            throw new InsufficientItemsException("Cannot remove " + number + " " + item.name()
                     + "'s since there are only " + existingQuantity
                     + " in the player's inventory");
         }

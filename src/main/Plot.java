@@ -6,13 +6,14 @@ public class Plot {
 
     private Item plant;
     private Maturity maturity;
+    private Button button;
+    private int size;
 
-    public Plot(Item plant, Maturity maturity) {
+    public Plot(Item plant, Maturity maturity, int plotSize) {
         this.plant = plant;
         this.maturity = maturity;
-    }
+        this.size = plotSize;
 
-    public Button asButton(int plotSize) {
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
         System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
@@ -29,7 +30,35 @@ public class Plot {
         plotView.setFitWidth(plotSize);
         Button cropButton = new Button();
         cropButton.setGraphic(plotView);
-        return cropButton;
+        this.button = cropButton;
+    }
+
+    public void grow() {
+        System.out.println("\nMaturity: " + this.maturity.name());
+        System.out.println("Plant: " + this.plant.name() + "\n");
+        String path = "file:images/" + this.plant.name().toLowerCase();
+
+        switch (this.maturity) {
+        case SEED:
+            this.maturity = Maturity.SPROUT;
+            break;
+        case SPROUT:
+            this.maturity = Maturity.IMMATURE;
+            break;
+        case IMMATURE:
+            this.maturity = Maturity.MATURE;
+            break;
+        default:
+            return;
+        }
+        ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
+        plotView.setFitHeight(this.size);
+        plotView.setFitWidth(this.size);
+        this.button.setGraphic(plotView);
+    }
+
+    public Button getButton() {
+        return this.button;
     }
 
     public Item getPlant() {
@@ -61,5 +90,5 @@ public class Plot {
             System.out.println("new seed type planted: PUMPKIN");
 
         }
-
+    }
 }
