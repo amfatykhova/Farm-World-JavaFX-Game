@@ -1,8 +1,8 @@
 import javafx.application.Application;
-
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -11,6 +11,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -24,6 +25,7 @@ import javafx.stage.Stage;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 
 public class Main extends Application {
@@ -322,6 +324,18 @@ public class Main extends Application {
                 Item plant = Item.values()[type];
                 Plot newPlot = new Plot(plant, Maturity.values()[maturity]);
                 Button plotButton = newPlot.asButton(plotSize);
+
+                // Context Menu for determinging seed type
+                ContextMenu contextMenu = new ContextMenu();
+                MenuItem menuItem1 = new MenuItem("MELON");
+                MenuItem menuItem2 = new MenuItem("POTATO");
+                MenuItem menuItem3 = new MenuItem("PUMPKIN");
+                MenuItem menuItem4 = new MenuItem("WHEAT");
+                contextMenu.getItems().addAll(menuItem1, menuItem2, menuItem3, menuItem4);
+
+                TextArea menuArea = new TextArea();
+                menuArea.setContextMenu(contextMenu);
+
                 plotButton.setOnMouseClicked(e -> {
                     if (newPlot.getMaturity().equals(Maturity.MATURE)) {
                         try {
@@ -338,6 +352,71 @@ public class Main extends Application {
                         } catch (InventoryCapacityException ex) {
                             System.out.println("Harvesting failed with error: " + ex.getMessage());
                         }
+                    }
+                    if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
+                        menuItem1.setOnAction((event1) -> {
+                            System.out.println(menuItem1.getText());
+                            // extracts seeds from an item
+                            // .remove() will throw an exception if you don't have enough of an item to plant
+                            player.getInventory().remove(Item.MELON, 1);
+                            // updates inventory table
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            // PLANT SEED MECHANIC CALLED
+                            newPlot.plantSeed(Item.MELON, menuItem1.getText());
+                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
+                            emptyView.setFitHeight(plotSize);
+                            emptyView.setFitWidth(plotSize);
+                            plotButton.setGraphic(emptyView);
+                        });
+                        menuItem2.setOnAction((event1) -> {
+                            System.out.println(menuItem2.getText());
+                            // extracts seeds from an item
+                            player.getInventory().remove(Item.POTATO, 1);
+                            // updates inventory table
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            // PLANT SEED MECHANIC CALLED
+                            newPlot.plantSeed(Item.POTATO, menuItem2.getText());
+                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
+                            emptyView.setFitHeight(plotSize);
+                            emptyView.setFitWidth(plotSize);
+                            plotButton.setGraphic(emptyView);
+                        });
+                        menuItem3.setOnAction((event1) -> {
+                            System.out.println(menuItem3.getText());
+                            // extracts seeds from an item
+                            player.getInventory().remove(Item.PUMPKIN, 1);
+                            // updates inventory table
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            // PLANT SEED MECHANIC CALLED
+                            newPlot.plantSeed(Item.PUMPKIN, menuItem3.getText());
+                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
+                            emptyView.setFitHeight(plotSize);
+                            emptyView.setFitWidth(plotSize);
+                            plotButton.setGraphic(emptyView);
+                        });
+                        menuItem4.setOnAction((event1) -> {
+                            System.out.println(menuItem1.getText());
+                            // extracts seeds from an item
+                            player.getInventory().remove(Item.WHEAT, 1);
+                            // updates inventory table
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            // PLANT SEED MECHANIC CALLED
+                            newPlot.plantSeed(Item.WHEAT, menuItem4.getText());
+                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
+                            emptyView.setFitHeight(plotSize);
+                            emptyView.setFitWidth(plotSize);
+                            plotButton.setGraphic(emptyView);
+                        });
+                        plotButton.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
+                            @Override
+                            public void handle(ContextMenuEvent contextMenuEvent) {
+                                contextMenu.show(plotButton, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
+                            }
+                        });
                     }
                 });
                 farmGrid.add(plotButton, i, j);
