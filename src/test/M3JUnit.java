@@ -1,8 +1,5 @@
-package sample;
-
 /*
     JUnit tests for Milestone 3 Code
-
     @author Dhruv Patel
     @version 1.0
  */
@@ -11,20 +8,20 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 import javafx.scene.control.Button;
+
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class M3Junit {
-    private static final int TO = 500;
+public class M3JUnit {
+    private static final int TO = 250;
 
     @Test (timeout = TO)
-    public void playerDay() {
+    public void playerName() {
         Player p1 = new Player();
-        assertEquals(p1.getDay(), 1);
-        p1.incrementDay();
-        assertEquals(p1.getDay(), 2);
+        p1.setName("BobBarker");
+        assertEquals(p1.getName(), "BobBarker");
     }
 
     @Test (timeout = TO)
@@ -72,7 +69,6 @@ public class M3Junit {
     @Test (timeout = TO, expected = InventoryCapacityException.class)
     public void inventoryGet() throws InventoryCapacityException {
         List<Item> items = new ArrayList<>();
-        Item i1 = Item.MELON;
         items.add(Item.MELON);
         items.add(Item.PUMPKIN);
         items.add(Item.PUMPKIN);
@@ -100,12 +96,11 @@ public class M3Junit {
     public void playerInit() {
         Player p1 = new Player();
         List<Item> items = new ArrayList<>();
-        //items.add(Item.MELON);
-        //items.add(Item.PUMPKIN);
-        //items.add(Item.MELON);
+        items.add(Item.MELON);
+        items.add(Item.PUMPKIN);
+        items.add(Item.MELON);
         p1.init("Peter Quill", items, FarmWorldConfigurations.Difficulty.HARD);
         assertEquals(p1.getName(), "Peter Quill");
-        assertEquals(p1.getBalance(), 500);
     }
 
     @Test (timeout = TO)
@@ -119,7 +114,7 @@ public class M3Junit {
         list.add(Item.PUMPKIN);
         list.add(Item.WHEAT);
 
-        assertEquals(list, world.getStartingSeeds());
+        assertEquals(world.getStartingSeeds(), list);
     }
 
     @Test

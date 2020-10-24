@@ -1,5 +1,3 @@
-package sample;
-
 public enum Maturity {
     EMPTY(""),
     SEED(""),
