@@ -44,4 +44,22 @@ public class Plot {
         this.maturity = Maturity.EMPTY;
         this.plant = null;
     }
+    
+    public void plantSeed(Item item, String string) {
+        this.maturity = Maturity.SEED;
+        if (string.equals("POTATO")) {
+            this.plant = Item.POTATO;
+            System.out.println("new seed type planted: POTATO");
+        } else if (string.equals("MELON")) {
+            this.plant = Item.MELON;
+            System.out.println("new seed type planted: MELON");
+        } else if (string.equals("WHEAT")) {
+            this.plant = Item.WHEAT;
+            System.out.println("new seed type planted: WHEAT");
+        } else { // PUMPKIN
+            this.plant = Item.PUMPKIN;
+            System.out.println("new seed type planted: PUMPKIN");
+
+        }
+    }    
 }
