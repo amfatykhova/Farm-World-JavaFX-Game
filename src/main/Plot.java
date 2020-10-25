@@ -1,4 +1,5 @@
 import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
@@ -8,11 +9,15 @@ public class Plot {
     private Maturity maturity;
     private Button button;
     private int size;
+    private final int minWater = 20;
+    private final int maxWater = 100;
+    private int waterLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
         this.plant = plant;
         this.maturity = maturity;
         this.size = plotSize;
+        this.waterLevel = 50;
 
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
@@ -30,6 +35,7 @@ public class Plot {
         plotView.setFitWidth(plotSize);
         Button cropButton = new Button();
         cropButton.setGraphic(plotView);
+        cropButton.setTooltip(new Tooltip("Water: " + this.getWaterLevel()));
         this.button = cropButton;
     }
 
@@ -74,21 +80,50 @@ public class Plot {
         this.plant = null;
     }
 
-    public void plantSeed(Item item, String string) {
+    public void plantSeed(String str) {
         this.maturity = Maturity.SEED;
-        if (string.equals("POTATO")) {
+        if (str.equals("POTATO")) {
             this.plant = Item.POTATO;
             System.out.println("new seed type planted: POTATO");
-        } else if (string.equals("MELON")) {
+        } else if (str.equals("MELON")) {
             this.plant = Item.MELON;
             System.out.println("new seed type planted: MELON");
-        } else if (string.equals("WHEAT")) {
+        } else if (str.equals("WHEAT")) {
             this.plant = Item.WHEAT;
             System.out.println("new seed type planted: WHEAT");
         } else { // PUMPKIN
             this.plant = Item.PUMPKIN;
             System.out.println("new seed type planted: PUMPKIN");
-
         }
     }
+
+    public void waterPlot() {
+        this.waterLevel += 25;
+        this.button.getTooltip().setText("Water: " + this.waterLevel);
+    }
+
+    public void waterDown() {
+        waterLevel -= 10;
+        if (waterLevel < 0) {
+            waterLevel = 0;
+        }
+        this.button.getTooltip().setText("Water: " + this.waterLevel);
+    }
+
+    public int getWaterLevel() {
+        return waterLevel;
+    }
+
+    public void waterLevelCheck() {
+        if (waterLevel > maxWater || waterLevel < minWater) {
+            this.maturity = Maturity.EMPTY;
+            this.plant = null;
+
+            ImageView plotView = new ImageView(new Image("file:images/empty.PNG"));
+            plotView.setFitHeight(this.size);
+            plotView.setFitWidth(this.size);
+            this.button.setGraphic(plotView);
+        }
+    }
+
 }
