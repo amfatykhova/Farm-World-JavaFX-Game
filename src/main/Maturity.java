@@ -1,9 +1,12 @@
+package main;
+
 public enum Maturity {
     EMPTY(""),
     SEED(""),
     SPROUT("1"),
     IMMATURE("2"),
-    MATURE("3");
+    MATURE("3"),
+    DEAD("4");
 
     private String order;
 

@@ -1,3 +1,5 @@
+package main;
+
 import javafx.scene.control.Button;
 
 public enum Item implements Marketable {

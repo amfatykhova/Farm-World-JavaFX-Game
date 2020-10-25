@@ -1,3 +1,5 @@
+package main;
+
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -8,11 +10,15 @@ public class Plot {
     private Maturity maturity;
     private Button button;
     private int size;
+    private final int minWater = 20;
+    private final int maxWater = 100;
+    private int waterLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
         this.plant = plant;
         this.maturity = maturity;
         this.size = plotSize;
+        this.waterLevel = 50;
 
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
@@ -88,7 +94,35 @@ public class Plot {
         } else { // PUMPKIN
             this.plant = Item.PUMPKIN;
             System.out.println("new seed type planted: PUMPKIN");
-
         }
     }
+
+    public void waterPlot() {
+        waterLevel += 25;
+    }
+
+    public void waterDown() {
+        waterLevel -= 10;
+        if (waterLevel < 0) {
+            waterLevel = 0;
+        }
+    }
+
+    public int getWaterLevel() {
+        return waterLevel;
+    }
+
+    public void waterLevelCheck() {
+        if (waterLevel > maxWater || waterLevel < minWater) {
+            this.maturity = Maturity.EMPTY;
+            this.plant = null;
+            int plotSize = this.size;
+
+            ImageView plotView = new ImageView(new Image("file:images/empty.PNG"));
+            plotView.setFitHeight(plotSize);
+            plotView.setFitWidth(plotSize);
+            this.button.setGraphic(plotView);
+        }
+    }
+
 }

@@ -1,7 +1,10 @@
+package main;
+
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -10,6 +13,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -311,6 +316,11 @@ public class Main extends Application {
             ArrayList<Button> plotButtons = new ArrayList<>();
             for (int i = 0; i < PLOT_COLS; i++) {
                 for (int j = 0; j < PLOT_ROWS; j++) {
+                    //Lower water level, check for bounds
+                    plots[j][i].waterDown();
+                    System.out.println("Current water level for (" + j + ", " + i + "): " + plots[j][i].getWaterLevel());
+                    plots[j][i].waterLevelCheck();
+                    //If not empty, grow seed
                     if (!plots[j][i].getMaturity().equals(Maturity.EMPTY)) {
                         plots[j][i].grow();
                     }
@@ -360,6 +370,12 @@ public class Main extends Application {
                 menuArea.setContextMenu(contextMenu);
 
                 plotButton.setOnMouseClicked(e -> {
+                    // Watering (right-click)
+                    if (!newPlot.getMaturity().equals(Maturity.EMPTY) && e.getButton() == MouseButton.SECONDARY) {
+                            newPlot.waterPlot();
+                            System.out.println("New water level is " + newPlot.getWaterLevel());
+                    }
+
                     // Harvesting
                     if (newPlot.getMaturity().equals(Maturity.MATURE)) {
                         try {
@@ -399,10 +415,14 @@ public class Main extends Application {
                                 plotButton, menuItem3, Item.PUMPKIN));
                         menuItem4.setOnAction(event1 -> plantAction(player, tableView, newPlot,
                                 plotButton, menuItem4, Item.WHEAT));
-                        plotButton.setOnContextMenuRequested(contextMenuEvent ->
+                        plotButton.setOnContextMenuRequested(contextMenuEvent -> {
+                            if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
                                 contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
-                                        contextMenuEvent.getScreenY()));
+                                        contextMenuEvent.getScreenY());
+                            }
+                        });
                     }
+
                 });
                 plots[j][i] = newPlot;
                 farmGrid.add(plotButton, i, j);
