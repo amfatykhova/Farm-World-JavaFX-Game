@@ -1,5 +1,3 @@
-package main;
-
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -440,7 +438,7 @@ public class Main extends Application {
             tableView.getColumns().get(0).setVisible(false);
             tableView.getColumns().get(0).setVisible(true);
             // PLANT SEED MECHANIC CALLED
-            newPlot.plantSeed(item, menuItem.getText());
+            newPlot.plantSeed(menuItem.getText());
             ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
             emptyView.setFitHeight(PLOT_SIZE);
             emptyView.setFitWidth(PLOT_SIZE);
