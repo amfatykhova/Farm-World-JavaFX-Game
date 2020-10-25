@@ -1,9 +1,16 @@
+package test;
 /*
     JUnit tests for Milestone 3 Code
     @author Dhruv Patel
     @version 1.0
  */
 
+import main.FarmWorldConfigurations;
+import main.Inventory;
+import main.InventoryCapacityException;
+import main.Item;
+import main.Main;
+import main.Player;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 

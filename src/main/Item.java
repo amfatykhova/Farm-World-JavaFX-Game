@@ -1,6 +1,7 @@
 import javafx.scene.control.Button;
 
 public enum Item implements Marketable {
+
     MELON(20, 4),
     POTATO(5, 20),
     PUMPKIN(15, 8),
