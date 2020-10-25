@@ -2,7 +2,6 @@ import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -11,7 +10,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -22,10 +20,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 
 public class Main extends Application {
@@ -33,11 +31,13 @@ public class Main extends Application {
     private static Scene config;
     private static Scene farmUI;
     private static Scene marketUI;
-    private static boolean marketRun;
 
     // game canvas dimensions
     private static final int WIDTH = 800;
     private static final int HEIGHT = 800;
+    private static final int PLOT_ROWS = 3;
+    private static final int PLOT_COLS = 4;
+    private static final int PLOT_SIZE = 100;
 
     private static final Font DISPLAY_FONT = Font.font("Verdana", FontWeight.MEDIUM, 24);
 
@@ -119,7 +119,7 @@ public class Main extends Application {
         Player player = new Player();
         Market market = new Market();
 
-        GridPane grid = configOptionsScreen(new ComboBox[] {diffBox, seedBox, seasonBox},
+        GridPane grid = configOptionsScreen(new ComboBox[]{diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
 
         // -------SCENE FarmUI--------
@@ -169,14 +169,12 @@ public class Main extends Application {
 
         // use fully detailed type for Map.Entry<String, String>
         TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
-        column1.setCellValueFactory(p -> {
-            return new SimpleObjectProperty<>(p.getValue().getKey().toString());
-        });
+        column1.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
+                .getKey().toString()));
 
         TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Quantity");
-        column2.setCellValueFactory(p -> {
-            return new SimpleObjectProperty<>(p.getValue().getValue().toString());
-        });
+        column2.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
+                .getValue().toString()));
 
         ObservableList<Map.Entry<Item, Integer>> items =
                 FXCollections.observableArrayList(map.entrySet());
@@ -227,8 +225,6 @@ public class Main extends Application {
             for (char letter : a) {
                 if (!(letter == ' ')) {
                     invalid = false;
-                }
-                if (!invalid) {
                     break;
                 }
             }
@@ -284,8 +280,9 @@ public class Main extends Application {
         Text dayDisplay = new Text("Day " + player.getDay());
         Button toMarketButton = new Button("Market");
         Button nextDayButton = new Button("Next Day");
-
         GridPane farmGrid = new GridPane();
+
+        Plot[][] plots = new Plot[PLOT_ROWS][PLOT_COLS];
 
         moneyDisplay.setFont(DISPLAY_FONT);
         moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
@@ -300,6 +297,7 @@ public class Main extends Application {
         nextDayButton.setFont(DISPLAY_FONT);
         nextDayButton.setTranslateY(HEIGHT - moneyDisplay.getLayoutBounds().getHeight() * 2.0);
 
+        setupPlots(player, tableView, farmGrid, plots);
 
         toMarketButton.setOnMouseClicked(e -> {
             moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
@@ -310,22 +308,47 @@ public class Main extends Application {
         nextDayButton.setOnMouseClicked(e -> {
             dayDisplay.setText("Day " + player.incrementDay());
             dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
+            ArrayList<Button> plotButtons = new ArrayList<>();
+            for (int i = 0; i < PLOT_COLS; i++) {
+                for (int j = 0; j < PLOT_ROWS; j++) {
+                    if (!plots[j][i].getMaturity().equals(Maturity.EMPTY)) {
+                        plots[j][i].grow();
+                    }
+                    plotButtons.add(plots[j][i].getButton());
+                }
+            }
+            farmGrid.getChildren().clear();
+            farmGrid.getChildren().addAll(plotButtons);
         });
 
-        int plotSize = 100;
-        int plotCols = 4;
-        int plotRows = 3;
+        farmGrid.setTranslateX((farmCanvas.getWidth() / 2.0)
+                - ((PLOT_SIZE * farmGrid.getColumnCount()) / 2.0));
+        farmGrid.setTranslateY((farmCanvas.getHeight() / 2.0)
+                - ((PLOT_SIZE * farmGrid.getRowCount()) / 2.0));
 
-        for (int i = 0; i < plotCols; i++) {
-            for (int j = 0; j < plotRows; j++) {
+        farmUIGroup.getChildren().add(moneyDisplay);
+        farmUIGroup.getChildren().add(dayDisplay);
+        farmUIGroup.getChildren().add(farmCanvas);
+        farmUIGroup.getChildren().add(farmGrid);
+        farmUIGroup.getChildren().add(toMarketButton);
+        farmUIGroup.getChildren().add(inventoryLabel);
+        farmUIGroup.getChildren().add(tableView);
+        farmUIGroup.getChildren().add(nextDayButton);
+    }
+
+    private static void setupPlots(Player player, TableView<Map.Entry<Item, Integer>> tableView,
+                                   GridPane farmGrid, Plot[][] plots) {
+
+        for (int i = 0; i < PLOT_COLS; i++) {
+            for (int j = 0; j < PLOT_ROWS; j++) {
                 Random rand = new Random();
                 int maturity = rand.nextInt(4) + 1; // 1..4
                 int type = rand.nextInt(4); // 0..3
                 Item plant = Item.values()[type];
-                Plot newPlot = new Plot(plant, Maturity.values()[maturity]);
-                Button plotButton = newPlot.asButton(plotSize);
+                Plot newPlot = new Plot(plant, Maturity.values()[maturity], PLOT_SIZE);
+                Button plotButton = newPlot.getButton();
 
-                // Context Menu for determinging seed type
+                // Context Menu for determining seed type
                 ContextMenu contextMenu = new ContextMenu();
                 MenuItem menuItem1 = new MenuItem("MELON");
                 MenuItem menuItem2 = new MenuItem("POTATO");
@@ -337,105 +360,74 @@ public class Main extends Application {
                 menuArea.setContextMenu(contextMenu);
 
                 plotButton.setOnMouseClicked(e -> {
+                    // Harvesting
                     if (newPlot.getMaturity().equals(Maturity.MATURE)) {
                         try {
-                            player.getInventory().add(plant, 1);
-                            System.out.println("Plant to harvest: " + plant.name());
-                            newPlot.harvest();
-                            System.out.println(player.getInventory().getItemMap().toString());
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            ImageView emptyView = new ImageView(new Image("file:images/empty.PNG"));
-                            emptyView.setFitHeight(plotSize);
-                            emptyView.setFitWidth(plotSize);
-                            plotButton.setGraphic(emptyView);
+                            int numHarvested = rand.nextInt(3) + 2;
+                            int remSpace = player.getInventory().getCapacity()
+                                    - player.getInventory().getSize();
+
+                            if (remSpace == 0) {
+                                System.out.println("Cannot harvest " + plant.name()
+                                        + " because you've run out of inventory space");
+                            } else {
+                                player.getInventory().add(plant, Math.min(remSpace, numHarvested));
+                                System.out.println("Plant to harvest: " + plant.name());
+                                newPlot.harvest();
+                                System.out.println(player.getInventory().getItemMap().toString());
+                                tableView.getColumns().get(0).setVisible(false);
+                                tableView.getColumns().get(0).setVisible(true);
+                                ImageView emptyView = new ImageView(
+                                        new Image("file:images/empty.PNG"));
+                                emptyView.setFitHeight(PLOT_SIZE);
+                                emptyView.setFitWidth(PLOT_SIZE);
+                                plotButton.setGraphic(emptyView);
+                            }
+                            System.out.println("New size: " + player.getInventory().getSize()
+                                    + "/" + player.getInventory().getCapacity());
                         } catch (InventoryCapacityException ex) {
                             System.out.println("Harvesting failed with error: " + ex.getMessage());
                         }
                     }
+                    // Planting
                     if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
-                        menuItem1.setOnAction((event1) -> {
-                            System.out.println(menuItem1.getText());
-                            // extracts seeds from an item
-                            // .remove() will throw an exception if you don't have enough of an item to plant
-                            player.getInventory().remove(Item.MELON, 1);
-                            // updates inventory table
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            // PLANT SEED MECHANIC CALLED
-                            newPlot.plantSeed(Item.MELON, menuItem1.getText());
-                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
-                            emptyView.setFitHeight(plotSize);
-                            emptyView.setFitWidth(plotSize);
-                            plotButton.setGraphic(emptyView);
-                        });
-                        menuItem2.setOnAction((event1) -> {
-                            System.out.println(menuItem2.getText());
-                            // extracts seeds from an item
-                            player.getInventory().remove(Item.POTATO, 1);
-                            // updates inventory table
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            // PLANT SEED MECHANIC CALLED
-                            newPlot.plantSeed(Item.POTATO, menuItem2.getText());
-                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
-                            emptyView.setFitHeight(plotSize);
-                            emptyView.setFitWidth(plotSize);
-                            plotButton.setGraphic(emptyView);
-                        });
-                        menuItem3.setOnAction((event1) -> {
-                            System.out.println(menuItem3.getText());
-                            // extracts seeds from an item
-                            player.getInventory().remove(Item.PUMPKIN, 1);
-                            // updates inventory table
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            // PLANT SEED MECHANIC CALLED
-                            newPlot.plantSeed(Item.PUMPKIN, menuItem3.getText());
-                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
-                            emptyView.setFitHeight(plotSize);
-                            emptyView.setFitWidth(plotSize);
-                            plotButton.setGraphic(emptyView);
-                        });
-                        menuItem4.setOnAction((event1) -> {
-                            System.out.println(menuItem1.getText());
-                            // extracts seeds from an item
-                            player.getInventory().remove(Item.WHEAT, 1);
-                            // updates inventory table
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            // PLANT SEED MECHANIC CALLED
-                            newPlot.plantSeed(Item.WHEAT, menuItem4.getText());
-                            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
-                            emptyView.setFitHeight(plotSize);
-                            emptyView.setFitWidth(plotSize);
-                            plotButton.setGraphic(emptyView);
-                        });
-                        plotButton.setOnContextMenuRequested(new EventHandler<ContextMenuEvent>() {
-                            @Override
-                            public void handle(ContextMenuEvent contextMenuEvent) {
-                                contextMenu.show(plotButton, contextMenuEvent.getScreenX(), contextMenuEvent.getScreenY());
-                            }
-                        });
+                        menuItem1.setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                                plotButton, menuItem1, Item.MELON));
+                        menuItem2.setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                                plotButton, menuItem2, Item.POTATO));
+                        menuItem3.setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                                plotButton, menuItem3, Item.PUMPKIN));
+                        menuItem4.setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                                plotButton, menuItem4, Item.WHEAT));
+                        plotButton.setOnContextMenuRequested(contextMenuEvent ->
+                                contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
+                                        contextMenuEvent.getScreenY()));
                     }
                 });
+                plots[j][i] = newPlot;
                 farmGrid.add(plotButton, i, j);
             }
         }
+    }
 
-        farmGrid.setTranslateX((farmCanvas.getWidth() / 2)
-                - (plotSize * farmGrid.getColumnCount() / 2));
-        farmGrid.setTranslateY((farmCanvas.getHeight() / 2)
-                - (plotSize * farmGrid.getRowCount() / 2));
-
-        farmUIGroup.getChildren().add(moneyDisplay);
-        farmUIGroup.getChildren().add(dayDisplay);
-        farmUIGroup.getChildren().add(farmCanvas);
-        farmUIGroup.getChildren().add(farmGrid);
-        farmUIGroup.getChildren().add(toMarketButton);
-        farmUIGroup.getChildren().add(inventoryLabel);
-        farmUIGroup.getChildren().add(tableView);
-        farmUIGroup.getChildren().add(nextDayButton);
+    private static void plantAction(Player player, TableView<Map.Entry<Item, Integer>> tableView,
+                                    Plot newPlot, Button plotButton, MenuItem menuItem, Item item) {
+        try {
+            System.out.println(menuItem.getText());
+            // extracts seeds from an item
+            player.getInventory().remove(item, 1);
+            // updates inventory table
+            tableView.getColumns().get(0).setVisible(false);
+            tableView.getColumns().get(0).setVisible(true);
+            // PLANT SEED MECHANIC CALLED
+            newPlot.plantSeed(item, menuItem.getText());
+            ImageView emptyView = new ImageView(new Image("file:images/Seed.PNG"));
+            emptyView.setFitHeight(PLOT_SIZE);
+            emptyView.setFitWidth(PLOT_SIZE);
+            plotButton.setGraphic(emptyView);
+        } catch (InsufficientItemsException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private static void setupMarket(Stage primaryStage, Player player, Market market,
@@ -475,8 +467,8 @@ public class Main extends Application {
         inventoryTable.getColumns().setAll(column1Inventory, column2Inventory);
 
         //DROP DOWN MENUS FOR INVENTORY AND MARKET
-        ComboBox<Item> marketBox  = new ComboBox<>();
-        ComboBox<Item> inventoryBox  = new ComboBox<>();
+        ComboBox<Item> marketBox = new ComboBox<>();
+        ComboBox<Item> inventoryBox = new ComboBox<>();
         refreshBox(inventoryBox, player.getInventory().getItemMap());
         refreshBox(marketBox, market.getItemMap());
 
@@ -547,10 +539,10 @@ public class Main extends Application {
     }
 
     public static void refreshBox(ComboBox box, Map<Item, Integer> map) {
-        for (Map.Entry<Item, Integer> e : map.entrySet()) {
-            box.getItems().remove(e.getKey());
-            box.getItems().add(e.getKey());
-        }
+        map.forEach((key, value) -> {
+            box.getItems().remove(key);
+            box.getItems().add(key);
+        });
     }
 
 
