@@ -116,10 +116,9 @@ public class Plot {
 
     public void waterLevelCheck() {
         if (waterLevel > maxWater || waterLevel < minWater) {
-            this.maturity = Maturity.EMPTY;
-            this.plant = null;
+            this.maturity = Maturity.DEAD;
 
-            ImageView plotView = new ImageView(new Image("file:images/empty.PNG"));
+            ImageView plotView = new ImageView(new Image("file:images/dead.PNG"));
             plotView.setFitHeight(this.size);
             plotView.setFitWidth(this.size);
             this.button.setGraphic(plotView);

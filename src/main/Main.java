@@ -374,6 +374,19 @@ public class Main extends Application {
                         System.out.println("New water level is " + newPlot.getWaterLevel());
                     }
 
+                    if (newPlot.getMaturity().equals(Maturity.DEAD)) {
+                        System.out.println("Plant to clear: " + plant.name());
+                        newPlot.harvest();
+                        System.out.println(player.getInventory().getItemMap().toString());
+                        tableView.getColumns().get(0).setVisible(false);
+                        tableView.getColumns().get(0).setVisible(true);
+                        ImageView emptyView = new ImageView(
+                            new Image("file:images/empty.PNG"));
+                        emptyView.setFitHeight(PLOT_SIZE);
+                        emptyView.setFitWidth(PLOT_SIZE);
+                        plotButton.setGraphic(emptyView);
+                    }
+
                     // Harvesting
                     if (newPlot.getMaturity().equals(Maturity.MATURE)) {
                         try {

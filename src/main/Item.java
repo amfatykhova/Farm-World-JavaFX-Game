@@ -13,11 +13,17 @@ public enum Item implements Marketable {
     private Button buttonBuy;
 
     Item(int price, int startQuantity) {
-        this.basePrice = price;
-        this.startingQuantity = startQuantity;
-        this.buttonSell = new Button("Sell");
-        this.buttonBuy = new Button("Buy");
+        try {
+            this.basePrice = price;
+            this.startingQuantity = startQuantity;
+            this.buttonSell = new Button("Sell");
+            this.buttonBuy = new Button("Buy");
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
+
 
     @Override
     public int getPrice() {
