@@ -18,8 +18,7 @@ public enum Item implements Marketable {
             this.startingQuantity = startQuantity;
             this.buttonSell = new Button("Sell");
             this.buttonBuy = new Button("Buy");
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
