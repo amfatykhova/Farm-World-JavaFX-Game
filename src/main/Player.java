@@ -67,4 +67,40 @@ public class Player {
     public void setName(String name) {
         this.name = name;
     }
+
+    public FarmWorldConfigurations.Difficulty getDifficulty() {
+        return difficulty;
+    }
+
+    public int getRandomEvent() {
+        int pRain = (int) (20 * this.difficulty.getMultiplier());
+        int pDrought = 0;
+        int pLocusts = 0;
+        switch (this.difficulty) {
+        case MEDIUM:
+            pDrought = 10;
+            pLocusts = 5;
+            break;
+        case HARD:
+            pDrought = 15;
+            pLocusts = 8;
+            break;
+        default:
+            pDrought = 5;
+            pLocusts = 2;
+        }
+        Random rand = new Random();
+        int prob = rand.nextInt(100) + 1; // 1..100
+        System.out.println("Prob: " + prob);
+        if (prob <= pRain) {
+            return 1; // Rain
+        }
+        if (prob <= pRain + pDrought) {
+            return 2; // Drought
+        }
+        if (prob <= pRain + pDrought + pLocusts) {
+            return 3; // Locusts
+        }
+        return 0; // No event
+    }
 }

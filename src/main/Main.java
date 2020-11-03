@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -310,20 +311,58 @@ public class Main extends Application {
             dayDisplay.setText("Day " + player.incrementDay());
             dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
             ArrayList<Button> plotButtons = new ArrayList<>();
+
+            // Calculate random events
+            int event = player.getRandomEvent();
+            System.out.println("Rand event is: " + event);
+            Random rand = new Random();
+            int amount = (rand.nextInt(6) + 1) * 10;
+            int numKilled = 0;
+
             for (int i = 0; i < PLOT_COLS; i++) {
                 for (int j = 0; j < PLOT_ROWS; j++) {
-                    //Lower water level, check for bounds
-                    plots[j][i].waterDown();
-                    System.out.println("Current water level for (" + j + ", " + i + "): "
-                            + plots[j][i].getWaterLevel());
-                    plots[j][i].waterLevelCheck();
-                    //If not empty, grow seed
-                    if (!plots[j][i].getMaturity().equals(Maturity.EMPTY)) {
-                        plots[j][i].grow();
+                    switch (event) {
+                    case 1:
+                        // Rain
+                        plots[j][i].waterUp(amount);
+                        break;
+                    case 2:
+                        // Drought
+                        plots[j][i].waterDown(amount);
+                        break;
+                    case 3:
+                        // Locusts
+                        double threshold = 1 - (0.8 * player.getDifficulty().getMultiplier());
+                        System.out.println("Locusts: Killing ~"
+                                + (threshold * PLOT_COLS * PLOT_ROWS) + " plots");
+                        if (Math.random() <= threshold) {
+                            plots[j][i].kill();
+                            numKilled++;
+                        }
+                        break;
+                    default:
+                        // Nothing
                     }
+                    // No random event occurred, so decrease hydration and advance growth stage
+                    plots[j][i].waterDown(10);
+                    plots[j][i].grow();
                     plotButtons.add(plots[j][i].getButton());
                 }
             }
+            if (event != 0) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                if (event == 1) {
+                    alert.setContentText("It rained! Plot water levels increased by " + amount);
+                } else if (event == 2) {
+                    alert.setContentText("There was a drought! Plot water levels decreased by "
+                            + amount);
+                } else if (event == 3) {
+                    alert.setContentText("Locusts ate your crops! " + numKilled
+                            + " plots were killed");
+                }
+                alert.showAndWait();
+            }
+
             farmGrid.getChildren().clear();
             farmGrid.getChildren().addAll(plotButtons);
         });
@@ -381,7 +420,7 @@ public class Main extends Application {
                         tableView.getColumns().get(0).setVisible(false);
                         tableView.getColumns().get(0).setVisible(true);
                         ImageView emptyView = new ImageView(
-                            new Image("file:images/empty.PNG"));
+                                new Image("file:images/empty.PNG"));
                         emptyView.setFitHeight(PLOT_SIZE);
                         emptyView.setFitWidth(PLOT_SIZE);
                         plotButton.setGraphic(emptyView);
@@ -569,13 +608,12 @@ public class Main extends Application {
         primaryStage.show();
     }
 
-    public static void refreshBox(ComboBox box, Map<Item, Integer> map) {
+    private static void refreshBox(ComboBox box, Map<Item, Integer> map) {
         map.forEach((key, value) -> {
             box.getItems().remove(key);
             box.getItems().add(key);
         });
     }
-
 
     public static void main(String[] args) {
         launch(args);

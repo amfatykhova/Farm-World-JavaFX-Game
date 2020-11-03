@@ -10,7 +10,7 @@ public class Plot {
     private Button button;
     private int size;
     private final int minWater = 20;
-    private final int maxWater = 100;
+    private final int maxWater = 90;
     private int waterLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
@@ -40,10 +40,6 @@ public class Plot {
     }
 
     public void grow() {
-        System.out.println("\nMaturity: " + this.maturity.name());
-        System.out.println("Plant: " + this.plant.name() + "\n");
-        String path = "file:images/" + this.plant.name().toLowerCase();
-
         switch (this.maturity) {
         case SEED:
             this.maturity = Maturity.SPROUT;
@@ -57,6 +53,7 @@ public class Plot {
         default:
             return;
         }
+        String path = "file:images/" + this.plant.name().toLowerCase();
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);
@@ -82,47 +79,52 @@ public class Plot {
 
     public void plantSeed(String str) {
         this.maturity = Maturity.SEED;
-        if (str.equals("POTATO")) {
-            this.plant = Item.POTATO;
-            System.out.println("new seed type planted: POTATO");
-        } else if (str.equals("MELON")) {
-            this.plant = Item.MELON;
-            System.out.println("new seed type planted: MELON");
-        } else if (str.equals("WHEAT")) {
-            this.plant = Item.WHEAT;
-            System.out.println("new seed type planted: WHEAT");
-        } else { // PUMPKIN
-            this.plant = Item.PUMPKIN;
-            System.out.println("new seed type planted: PUMPKIN");
-        }
+        this.plant = Item.valueOf(str);
     }
 
     public void waterPlot() {
-        this.waterLevel += 25;
+        this.waterLevel += 10;
         this.button.getTooltip().setText("Water: " + this.waterLevel);
     }
 
-    public void waterDown() {
-        waterLevel -= 10;
+    public void waterUp(int amount) {
+        this.waterLevel += amount;
+        if (this.waterLevel > 100) {
+            this.waterLevel = 100;
+        }
+        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        this.waterLevelCheck();
+    }
+
+    public void waterDown(int amount) {
+        waterLevel -= amount;
         if (waterLevel < 0) {
             waterLevel = 0;
         }
         this.button.getTooltip().setText("Water: " + this.waterLevel);
+        this.waterLevelCheck();
     }
 
     public int getWaterLevel() {
-        return waterLevel;
+        return this.waterLevel;
     }
 
     public void waterLevelCheck() {
+        // If too much or not enough water, kill the plant
         if (waterLevel > maxWater || waterLevel < minWater) {
-            this.maturity = Maturity.DEAD;
-
-            ImageView plotView = new ImageView(new Image("file:images/dead.PNG"));
-            plotView.setFitHeight(this.size);
-            plotView.setFitWidth(this.size);
-            this.button.setGraphic(plotView);
+            this.kill();
         }
+    }
+
+    public void kill() {
+        if (this.getMaturity().equals(Maturity.DEAD)) {
+            return;
+        }
+        this.maturity = Maturity.DEAD;
+        ImageView plotView = new ImageView(new Image("file:images/dead.PNG"));
+        plotView.setFitHeight(this.size);
+        plotView.setFitWidth(this.size);
+        this.button.setGraphic(plotView);
     }
 
 }
