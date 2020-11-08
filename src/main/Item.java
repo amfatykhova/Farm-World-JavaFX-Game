@@ -8,7 +8,8 @@ public enum Item implements Marketable {
     POTATO(5, 20),
     PUMPKIN(15, 8),
     WHEAT(10, 16),
-    PESTICIDE(10, 1);
+    PESTICIDE(10, 1),
+    FERTILIZER(15, 0);
 
     private int basePrice;
     private int startingQuantity;

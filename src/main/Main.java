@@ -353,7 +353,14 @@ public class Main extends Application {
                     }
                     // No random event occurred, so decrease hydration and advance growth stage
                     plots[j][i].waterDown(10);
-                    plots[j][i].grow();
+                    //Grow twice if fertilized, otherwise one grow
+                    if (plots[j][i].getFertilizerLevel() > 0) {
+                        plots[j][i].grow();
+                        plots[j][i].grow();
+                        plots[j][i].decrementFertilizerLevel();
+                    } else {
+                        plots[j][i].grow();
+                    }
                     plotButtons.add(plots[j][i].getButton());
                 }
             }
@@ -410,31 +417,21 @@ public class Main extends Application {
                 MenuItem menuItem4 = new MenuItem("WHEAT");
                 contextMenu.getItems().addAll(menuItem1, menuItem2, menuItem3, menuItem4);
 
+                // Context Menu for right-click actions
+                ContextMenu contextMenu2 = new ContextMenu();
+                MenuItem waterMenuItem = new MenuItem("Water Plot");
+                MenuItem pesticideMenuItem = new MenuItem("Apply Pesticides");
+                MenuItem fertilizerMenuItem = new MenuItem("Apply Fertilizer");
+                contextMenu2.getItems().addAll(waterMenuItem,
+                        pesticideMenuItem, fertilizerMenuItem);
+
                 TextArea menuArea = new TextArea();
                 menuArea.setContextMenu(contextMenu);
 
-                plotButton.setOnMouseClicked(e -> {
-                    // Watering (right-click)
-                    if (!newPlot.getMaturity().equals(Maturity.EMPTY)
-                            && e.getButton() == MouseButton.SECONDARY) {
-                        newPlot.waterPlot();
-                        System.out.println("New water level is " + newPlot.getWaterLevel());
-                    }
+                TextArea menuArea2 = new TextArea();
+                menuArea2.setContextMenu(contextMenu2);
 
-                    // Applying Pesticides (middle-click)
-                    if (!newPlot.getMaturity().equals(Maturity.EMPTY)
-                            && e.getButton() == MouseButton.MIDDLE) {
-                        try {
-                            player.getInventory().remove(Item.PESTICIDE, 1);
-                            newPlot.applyPesticides();
-                            //Update table numbers
-                            tableView.getColumns().get(0).setVisible(false);
-                            tableView.getColumns().get(0).setVisible(true);
-                            System.out.println("Pesticides applied to " + newPlot.getPlant().name());
-                        } catch (InsufficientItemsException e2) {
-                            System.out.println("Cannot apply pesticides. You do not have any.");
-                        }
-                    }
+                plotButton.setOnMouseClicked(e -> {
 
                     // Clear dead plants
                     if (newPlot.getMaturity().equals(Maturity.DEAD)
@@ -483,7 +480,8 @@ public class Main extends Application {
                     }
 
                     // Planting new seeds
-                    if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
+                    if (newPlot.getMaturity().equals(Maturity.EMPTY)
+                            && e.getButton() == MouseButton.SECONDARY) {
                         menuItem1.setOnAction(event1 -> plantAction(player, tableView, newPlot,
                                 plotButton, menuItem1, Item.MELON));
                         menuItem2.setOnAction(event1 -> plantAction(player, tableView, newPlot,
@@ -495,6 +493,52 @@ public class Main extends Application {
                         plotButton.setOnContextMenuRequested(contextMenuEvent -> {
                             if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
                                 contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
+                                        contextMenuEvent.getScreenY());
+                            }
+                        });
+                    }
+
+                    // Water, fertilize, pesticides actions in menu
+                    if (!newPlot.getMaturity().equals(Maturity.EMPTY)
+                            && e.getButton() == MouseButton.SECONDARY) {
+                        waterMenuItem.setOnAction(event1 -> {
+                            // Water crop
+                            newPlot.waterPlot();
+                            System.out.println("New water level is " + newPlot.getWaterLevel());
+                        });
+                        pesticideMenuItem.setOnAction(event1 -> {
+                            // Apply pesticides
+                            try {
+                                player.getInventory().remove(Item.PESTICIDE, 1);
+                                newPlot.applyPesticides();
+                                //Update table numbers
+                                tableView.getColumns().get(0).setVisible(false);
+                                tableView.getColumns().get(0).setVisible(true);
+                                System.out.println("Pesticides applied to "
+                                        + newPlot.getPlant().name());
+                            } catch (InsufficientItemsException e2) {
+                                System.out.println("Cannot apply pesticides. You do not have any.");
+                            }
+                        });
+                        fertilizerMenuItem.setOnAction(event1 -> {
+                            // Apply fertilizer
+                            try {
+                                player.getInventory().remove(Item.FERTILIZER, 1);
+                                newPlot.addFertilizer(3);
+                                //Update table numbers
+                                tableView.getColumns().get(0).setVisible(false);
+                                tableView.getColumns().get(0).setVisible(true);
+                                System.out.print("Fertilizer applied to "
+                                        + newPlot.getPlant().name());
+                                System.out.println(". New level is "
+                                        + newPlot.getFertilizerLevel());
+                            } catch (InsufficientItemsException e2) {
+                                System.out.println("Cannot apply fertilizer. You do not have any.");
+                            }
+                        });
+                        plotButton.setOnContextMenuRequested(contextMenuEvent -> {
+                            if (!newPlot.getMaturity().equals(Maturity.EMPTY)) {
+                                contextMenu2.show(plotButton, contextMenuEvent.getScreenX(),
                                         contextMenuEvent.getScreenY());
                             }
                         });

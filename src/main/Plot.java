@@ -15,12 +15,16 @@ public class Plot {
     private final int minWater = 20;
     private final int maxWater = 90;
     private int waterLevel;
+    private final int minFertilizerLevel = 0;
+    private final int maxFertilizerLevel = 10;
+    private int fertilizerLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
         this.plant = plant;
         this.maturity = maturity;
         this.size = plotSize;
         this.waterLevel = 50;
+        this.fertilizerLevel = 0;
 
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
@@ -38,7 +42,8 @@ public class Plot {
         plotView.setFitWidth(plotSize);
         Button cropButton = new Button();
         cropButton.setGraphic(plotView);
-        cropButton.setTooltip(new Tooltip("Water: " + this.getWaterLevel()));
+        cropButton.setTooltip(new Tooltip("Water: " + this.getWaterLevel()
+                + "\nFertilizer: " + this.getFertilizerLevel()));
         this.button = cropButton;
     }
 
@@ -86,9 +91,15 @@ public class Plot {
         this.plant = Item.valueOf(str);
     }
 
+    // Multiple other methods need to use this functionality
+    private void setTooltip() {
+        this.button.getTooltip().setText("Water: " + this.getWaterLevel()
+                + "\nFertilizer: " + this.getFertilizerLevel());
+    }
+
     public void waterPlot() {
         this.waterLevel += 10;
-        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        setTooltip();
     }
 
     public void waterUp(int amount) {
@@ -96,7 +107,7 @@ public class Plot {
         if (this.waterLevel > 100) {
             this.waterLevel = 100;
         }
-        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        setTooltip();
         this.waterLevelCheck();
     }
 
@@ -105,7 +116,7 @@ public class Plot {
         if (waterLevel < 0) {
             waterLevel = 0;
         }
-        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        setTooltip();
         this.waterLevelCheck();
     }
 
@@ -141,4 +152,25 @@ public class Plot {
     public boolean getPesticides() {
         return hasPesticides;
     }
+
+    public int getFertilizerLevel() {
+        return fertilizerLevel;
+    }
+
+    public void addFertilizer(int addLevel) {
+        fertilizerLevel += addLevel;
+        if (fertilizerLevel > 10) {
+            fertilizerLevel = 10;
+        }
+        setTooltip();
+    }
+
+    public void decrementFertilizerLevel() {
+        fertilizerLevel--;
+        if (fertilizerLevel < 0) {
+            fertilizerLevel = 0;
+        }
+        setTooltip();
+    }
+
 }
