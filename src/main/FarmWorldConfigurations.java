@@ -1,3 +1,5 @@
+package main;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -71,7 +73,7 @@ public class FarmWorldConfigurations {
     }
 
     public List<Item> getStartingSeeds() {
-        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT);
+        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT, Item.PESTICIDE);
     }
 
 }

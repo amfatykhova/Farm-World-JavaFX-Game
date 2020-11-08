@@ -1,3 +1,5 @@
+package main;
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -9,6 +11,7 @@ public class Plot {
     private Maturity maturity;
     private Button button;
     private int size;
+    private boolean hasPesticides = false;
     private final int minWater = 20;
     private final int maxWater = 90;
     private int waterLevel;
@@ -75,6 +78,7 @@ public class Plot {
     public void harvest() {
         this.maturity = Maturity.EMPTY;
         this.plant = null;
+        removePesticides();
     }
 
     public void plantSeed(String str) {
@@ -127,4 +131,14 @@ public class Plot {
         this.button.setGraphic(plotView);
     }
 
+    public void applyPesticides() {
+        hasPesticides = true;
+    }
+    public void removePesticides() {
+        hasPesticides = false;
+    }
+
+    public boolean getPesticides() {
+        return hasPesticides;
+    }
 }

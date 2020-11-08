@@ -1,3 +1,5 @@
+package main;
+
 import java.util.List;
 import java.util.Random;
 
@@ -21,6 +23,7 @@ public class Player {
         this.difficulty = diff;
         this.name = name;
         this.balance = (int) (this.difficulty.getMultiplier() * 1000);
+        Item.PESTICIDE.setPrice((int) (1/diff.getMultiplier()) * 10);
     }
 
     public String getName() {

@@ -1,3 +1,5 @@
+package main;
+
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -332,6 +334,12 @@ public class Main extends Application {
                         break;
                     case 3:
                         // Locusts
+                        if (plots[j][i].getPesticides()) {
+                            //Don't kill if has pesticides
+                            System.out.println("Your pesticides protected against a locust storm!");
+                            break;
+                        }
+
                         double threshold = 1 - (0.8 * player.getDifficulty().getMultiplier());
                         System.out.println("Locusts: Killing ~"
                                 + (threshold * PLOT_COLS * PLOT_ROWS) + " plots");
@@ -413,7 +421,24 @@ public class Main extends Application {
                         System.out.println("New water level is " + newPlot.getWaterLevel());
                     }
 
-                    if (newPlot.getMaturity().equals(Maturity.DEAD)) {
+                    // Applying Pesticides (middle-click)
+                    if (!newPlot.getMaturity().equals(Maturity.EMPTY)
+                            && e.getButton() == MouseButton.MIDDLE) {
+                        try {
+                            player.getInventory().remove(Item.PESTICIDE, 1);
+                            newPlot.applyPesticides();
+                            //Update table numbers
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            System.out.println("Pesticides applied to " + newPlot.getPlant().name());
+                        } catch (InsufficientItemsException e2) {
+                            System.out.println("Cannot apply pesticides. You do not have any.");
+                        }
+                    }
+
+                    // Clear dead plants
+                    if (newPlot.getMaturity().equals(Maturity.DEAD)
+                            && e.getButton() == MouseButton.PRIMARY) {
                         System.out.println("Plant to clear: " + plant.name());
                         newPlot.harvest();
                         System.out.println(player.getInventory().getItemMap().toString());
@@ -426,8 +451,9 @@ public class Main extends Application {
                         plotButton.setGraphic(emptyView);
                     }
 
-                    // Harvesting
-                    if (newPlot.getMaturity().equals(Maturity.MATURE)) {
+                    // Harvesting mature plants
+                    if (newPlot.getMaturity().equals(Maturity.MATURE)
+                            && e.getButton() == MouseButton.PRIMARY) {
                         try {
                             int numHarvested = rand.nextInt(3) + 2;
                             int remSpace = player.getInventory().getCapacity()
@@ -455,7 +481,8 @@ public class Main extends Application {
                             System.out.println("Harvesting failed with error: " + ex.getMessage());
                         }
                     }
-                    // Planting
+
+                    // Planting new seeds
                     if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
                         menuItem1.setOnAction(event1 -> plantAction(player, tableView, newPlot,
                                 plotButton, menuItem1, Item.MELON));
