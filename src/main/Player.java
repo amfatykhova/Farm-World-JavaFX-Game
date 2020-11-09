@@ -24,6 +24,7 @@ public class Player {
         this.name = name;
         this.balance = (int) (this.difficulty.getMultiplier() * 1000);
         Item.PESTICIDE.setPrice((int) (1 / diff.getMultiplier()) * 10);
+        Item.FERTILIZER.setPrice((int) (1 / diff.getMultiplier()) * 15);
     }
 
     public String getName() {

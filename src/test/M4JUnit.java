@@ -1,5 +1,5 @@
 /*
-    JUnit tests for Milestone 3 Code
+    JUnit tests for Milestone 4 Code
     @author Noura El Bayrouti
     @version 1.0
  */

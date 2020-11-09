@@ -427,10 +427,8 @@ public class Main extends Application {
 
                 TextArea menuArea = new TextArea();
                 menuArea.setContextMenu(contextMenu);
-
                 TextArea menuArea2 = new TextArea();
                 menuArea2.setContextMenu(contextMenu2);
-
                 plotButton.setOnMouseClicked(e -> {
 
                     // Clear dead plants
