@@ -1,7 +1,9 @@
 package sample;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class Market {
 
@@ -22,4 +24,3 @@ public class Market {
         return this.prices;
     }
 }
-

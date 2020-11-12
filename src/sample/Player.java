@@ -10,6 +10,8 @@ public class Player {
 
     private String name;
     private Inventory inventory;
+    // worker inventory added
+    private WorkerInventory workerInventory;
     private FarmWorldConfigurations.Difficulty difficulty;
     private int balance;
     private int day;
@@ -20,9 +22,12 @@ public class Player {
 
     public void init(String name, List<Item> items, FarmWorldConfigurations.Difficulty diff) {
         this.inventory = new Inventory(items, diff);
+        // worker inventory initialized:
+        this.workerInventory = new WorkerInventory(diff);
         this.difficulty = diff;
         this.name = name;
         this.balance = (int) (this.difficulty.getMultiplier() * 1000);
+        Item.PESTICIDE.setPrice((int) (1 / diff.getMultiplier()) * 10);
     }
 
     public String getName() {
@@ -35,7 +40,7 @@ public class Player {
             double variance = new Random().nextGaussian() * 5.0;
             this.balance += (int) (((double) quantity) * (item.getPrice()
                     * this.difficulty.getMultiplier() + variance));
-        } catch (IllegalArgumentException e) {
+        } catch (InsufficientItemsException e) {
             System.out.println("Cannot sell item. You don't have any " + item.name());
         }
     }
@@ -50,12 +55,27 @@ public class Player {
         this.balance -= (int) (((double) quantity) * item.getPrice());
     }
 
-    public void incrementDay() {
-        day++;
+    public void hireWorker (Worker worker, int quantity) throws InsufficientFundsException,
+            WorkerInventoryCapacityException {
+        if (worker.getPrice() * quantity > this.balance) {
+            throw new InsufficientFundsException("Player does not have enough money to buy "
+                    + quantity + " " + worker.name());
+        }
+        this.workerInventory.add(worker, quantity);
+        this.balance -= (int) (((double) quantity) * worker.getPrice());
+    }
+
+    public int incrementDay() {
+        return ++this.day;
     }
 
     public Inventory getInventory() {
         return this.inventory;
+    }
+
+    // get worker inventory
+    public WorkerInventory getWorkerInventory() {
+        return this.workerInventory;
     }
 
     public int getBalance() {
@@ -66,5 +86,43 @@ public class Player {
         return this.day;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
 
+    public FarmWorldConfigurations.Difficulty getDifficulty() {
+        return difficulty;
+    }
+
+    public int getRandomEvent() {
+        int pRain = (int) (20 * this.difficulty.getMultiplier());
+        int pDrought = 0;
+        int pLocusts = 0;
+        switch (this.difficulty) {
+            case MEDIUM:
+                pDrought = 10;
+                pLocusts = 5;
+                break;
+            case HARD:
+                pDrought = 15;
+                pLocusts = 8;
+                break;
+            default:
+                pDrought = 5;
+                pLocusts = 2;
+        }
+        Random rand = new Random();
+        int prob = rand.nextInt(100) + 1; // 1..100
+        System.out.println("Prob: " + prob);
+        if (prob <= pRain) {
+            return 1; // Rain
+        }
+        if (prob <= pRain + pDrought) {
+            return 2; // Drought
+        }
+        if (prob <= pRain + pDrought + pLocusts) {
+            return 3; // Locusts
+        }
+        return 0; // No event
+    }
 }
