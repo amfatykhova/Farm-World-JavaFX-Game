@@ -1,19 +1,17 @@
 package main;
 
-
-import javafx.scene.control.Button;
-
-
 public enum Item implements Marketable {
 
     MELON(20, 4),
     POTATO(5, 20),
     PUMPKIN(15, 8),
     WHEAT(10, 16),
-
-    PESTICIDE(10, 1),
-    FERTILIZER(15, 0);
-
+    MELON_PESTICIDES(15, 0),
+    POTATO_PESTICIDES(3, 0),
+    PUMPKIN_PESTICIDES(10, 0),
+    WHEAT_PESTICIDES(7, 0),
+    PESTICIDE(10, 4),
+    FERTILIZER(15, 4);
 
     private int basePrice;
     private int startingQuantity;
@@ -49,30 +47,7 @@ public enum Item implements Marketable {
         return this.startingQuantity;
     }
 
-
-    @Override
-    public void setButtonSell(Button buttonSell) {
-        this.buttonSell = buttonSell;
+    public void setPrice(int price) {
+        this.basePrice = price;
     }
-
-    @Override
-    public Button getButtonSell() {
-        return buttonSell;
-    }
-
-    @Override
-    public void setButtonBuy(Button buttonBuy) {
-        this.buttonBuy = buttonBuy;
-    }
-
-    @Override
-    public Button getButtonBuy() {
-        return buttonBuy;
-    }
-
-    public void setPrice(int newPrice) {
-        this.basePrice = newPrice;
-    }
-
 }
-
