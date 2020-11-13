@@ -698,6 +698,7 @@ public class Main extends Application {
                                     TableView<Map.Entry<Item, Integer>> tableView,
                                     Group farmUIGroup) {
 
+
         moneyDisplay.setText("$" + player.getBalance());
         Text marketInventory = new Text("                                Inventory:");
         Map<Item, Integer> map1 = player.getInventory().getItemMap();
@@ -750,7 +751,10 @@ public class Main extends Application {
 
         // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET USE BUY BUTTON
         Label marketStand = new Label("Items for Sale:");
+
         Map<Item, Integer> map2 = market.getItemMap();
+        map2.replace(Item.PESTICIDE, (int) ((1 / player.getDifficulty().getMultiplier()) * 10));
+        map2.replace(Item.FERTILIZER, (int) ((1 / player.getDifficulty().getMultiplier()) * 15));
         TableColumn<Map.Entry<Item, Integer>, String> column1Market = new TableColumn<>("Item");
         column1Market.setCellValueFactory(p ->
                 new SimpleObjectProperty<>(p.getValue().getKey().getDisplayName())
