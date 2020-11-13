@@ -1,3 +1,5 @@
+package main;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -70,7 +72,9 @@ public class FarmWorldConfigurations {
         return (int) (this.difficulty.getMultiplier() * 1000);
     }
 
-    public List<Item> getStartingSeeds() {
-        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT);
+    public List<Item> getStartingItems() {
+        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT,
+                Item.MELON_PESTICIDES, Item.PUMPKIN_PESTICIDES, Item.POTATO_PESTICIDES,
+                Item.WHEAT_PESTICIDES, Item.PESTICIDE, Item.FERTILIZER);
     }
 }

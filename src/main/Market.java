@@ -1,3 +1,5 @@
+package main;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,12 +14,7 @@ public class Market {
         }
     }
 
-    public double getPrice(Item item) {
-        return this.prices.get(item);
-    }
-
     public Map<Item, Integer> getItemMap() {
         return this.prices;
     }
 }
-

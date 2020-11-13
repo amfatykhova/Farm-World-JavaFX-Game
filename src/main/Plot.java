@@ -1,3 +1,6 @@
+package main;
+
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -10,14 +13,16 @@ public class Plot {
     private Button button;
     private int size;
     private final int minWater = 20;
-    private final int maxWater = 100;
+    private final int maxWater = 90;
     private int waterLevel;
+    private int fertilizerLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
         this.plant = plant;
         this.maturity = maturity;
         this.size = plotSize;
         this.waterLevel = 50;
+        this.fertilizerLevel = 0;
 
         String plantName = this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
@@ -35,21 +40,26 @@ public class Plot {
         plotView.setFitWidth(plotSize);
         Button cropButton = new Button();
         cropButton.setGraphic(plotView);
-        cropButton.setTooltip(new Tooltip("Water: " + this.getWaterLevel()));
+        cropButton.setTooltip(new Tooltip("Water: " + this.getWaterLevel()
+                + "\nFertilizer: " + this.getFertilizerLevel()));
         this.button = cropButton;
     }
 
     public void grow() {
-        System.out.println("\nMaturity: " + this.maturity.name());
-        System.out.println("Plant: " + this.plant.name() + "\n");
-        String path = "file:images/" + this.plant.name().toLowerCase();
-
         switch (this.maturity) {
         case SEED:
-            this.maturity = Maturity.SPROUT;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.IMMATURE;
+            } else {
+                this.maturity = Maturity.SPROUT;
+            }
             break;
         case SPROUT:
-            this.maturity = Maturity.IMMATURE;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.MATURE;
+            } else {
+                this.maturity = Maturity.IMMATURE;
+            }
             break;
         case IMMATURE:
             this.maturity = Maturity.MATURE;
@@ -57,6 +67,7 @@ public class Plot {
         default:
             return;
         }
+        String path = "file:images/" + this.plant.toConcat();
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);
@@ -71,6 +82,10 @@ public class Plot {
         return plant;
     }
 
+    public void setPlant(Item plant) {
+        this.plant = plant;
+    }
+
     public Maturity getMaturity() {
         return maturity;
     }
@@ -82,47 +97,78 @@ public class Plot {
 
     public void plantSeed(String str) {
         this.maturity = Maturity.SEED;
-        if (str.equals("POTATO")) {
-            this.plant = Item.POTATO;
-            System.out.println("new seed type planted: POTATO");
-        } else if (str.equals("MELON")) {
-            this.plant = Item.MELON;
-            System.out.println("new seed type planted: MELON");
-        } else if (str.equals("WHEAT")) {
-            this.plant = Item.WHEAT;
-            System.out.println("new seed type planted: WHEAT");
-        } else { // PUMPKIN
-            this.plant = Item.PUMPKIN;
-            System.out.println("new seed type planted: PUMPKIN");
-        }
+        this.plant = Item.valueOf(str);
+    }
+
+    // Multiple other methods need to use this functionality
+    private void setTooltip() {
+        this.button.getTooltip().setText("Water: " + this.getWaterLevel()
+                + "\nFertilizer: " + this.getFertilizerLevel());
     }
 
     public void waterPlot() {
-        this.waterLevel += 25;
-        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        this.waterLevel += 10;
+        setTooltip();
     }
 
-    public void waterDown() {
-        waterLevel -= 10;
+    public void waterUp(int amount) {
+        this.waterLevel += amount;
+        if (this.waterLevel > 100) {
+            this.waterLevel = 100;
+        }
+        setTooltip();
+        this.waterLevelCheck();
+    }
+
+    public void waterDown(int amount) {
+        waterLevel -= amount;
         if (waterLevel < 0) {
             waterLevel = 0;
         }
-        this.button.getTooltip().setText("Water: " + this.waterLevel);
+        setTooltip();
+        this.waterLevelCheck();
     }
 
     public int getWaterLevel() {
-        return waterLevel;
+        return this.waterLevel;
     }
 
     public void waterLevelCheck() {
+        // If too much or not enough water, kill the plant
         if (waterLevel > maxWater || waterLevel < minWater) {
-            this.maturity = Maturity.DEAD;
-
-            ImageView plotView = new ImageView(new Image("file:images/dead.PNG"));
-            plotView.setFitHeight(this.size);
-            plotView.setFitWidth(this.size);
-            this.button.setGraphic(plotView);
+            this.kill();
         }
+    }
+
+    public void kill() {
+        if (this.getMaturity().equals(Maturity.DEAD)) {
+            return;
+        }
+        this.maturity = Maturity.DEAD;
+        ImageView plotView = new ImageView(new Image("file:images/dead.PNG"));
+        plotView.setFitHeight(this.size);
+        plotView.setFitWidth(this.size);
+        this.button.setGraphic(plotView);
+    }
+
+    public int getFertilizerLevel() {
+        return fertilizerLevel;
+    }
+
+    public void addFertilizer(int addLevel) {
+        fertilizerLevel += addLevel;
+        if (fertilizerLevel > 10) {
+            fertilizerLevel = 10;
+        }
+        setTooltip();
+    }
+
+    public void decrementFertilizerLevel() {
+        fertilizerLevel--;
+        if (fertilizerLevel < 0) {
+            fertilizerLevel = 0;
+        }
+        setTooltip();
     }
 
 }

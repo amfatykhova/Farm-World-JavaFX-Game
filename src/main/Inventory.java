@@ -1,3 +1,5 @@
+package main;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ public class Inventory {
         this.items.put(item, this.items.get(item) + number);
         this.size += number;
     }
+
 
     public Map<Item, Integer> getItemMap() {
         return this.items;
