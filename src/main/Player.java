@@ -10,6 +10,7 @@ public class Player {
 
     private String name;
     private Inventory inventory;
+    // worker inventory added
     private FarmWorldConfigurations.Difficulty difficulty;
     private int balance;
     private int day;
@@ -20,6 +21,7 @@ public class Player {
 
     public void init(String name, List<Item> items, FarmWorldConfigurations.Difficulty diff) {
         this.inventory = new Inventory(items, diff);
+        // worker inventory initialized:
         this.difficulty = diff;
         this.name = name;
         this.balance = (int) (this.difficulty.getMultiplier() * 1000);
@@ -36,6 +38,7 @@ public class Player {
             double variance = new Random().nextGaussian() * 5.0;
             this.balance += (int) (((double) quantity) * (item.getPrice()
                     * this.difficulty.getMultiplier() + variance));
+            System.out.println("Selling " + item.name());
         } catch (InsufficientItemsException e) {
             System.out.println("Cannot sell item. You don't have any " + item.name());
         }

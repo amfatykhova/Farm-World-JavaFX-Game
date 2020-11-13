@@ -72,9 +72,11 @@ public class FarmWorldConfigurations {
         return (int) (this.difficulty.getMultiplier() * 1000);
     }
 
+
     public List<Item> getStartingSeeds() {
         return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT,
                 Item.PESTICIDE, Item.FERTILIZER);
     }
 
 }
+

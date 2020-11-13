@@ -5,6 +5,7 @@
  */
 
 import javafx.embed.swing.JFXPanel;
+import main.*;
 import org.junit.Test;
 
 import java.util.Random;

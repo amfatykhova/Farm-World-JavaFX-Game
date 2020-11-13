@@ -1,6 +1,8 @@
 package main;
 
+
 import javafx.scene.control.Button;
+
 
 public enum Item implements Marketable {
 
@@ -8,25 +10,34 @@ public enum Item implements Marketable {
     POTATO(5, 20),
     PUMPKIN(15, 8),
     WHEAT(10, 16),
+
     PESTICIDE(10, 1),
     FERTILIZER(15, 0);
 
+
     private int basePrice;
     private int startingQuantity;
-    private Button buttonSell;
-    private Button buttonBuy;
 
     Item(int price, int startQuantity) {
         try {
             this.basePrice = price;
             this.startingQuantity = startQuantity;
-            this.buttonSell = new Button("Sell");
-            this.buttonBuy = new Button("Buy");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public String getDisplayName() {
+        String str = this.name().toLowerCase();
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public String toConcat() {
+        if (this.name().contains("_")) {
+            return this.name().substring(0, this.name().indexOf("_"));
+        }
+        return this.name();
+    }
 
     @Override
     public int getPrice() {
@@ -37,6 +48,7 @@ public enum Item implements Marketable {
     public int getQuantity() {
         return this.startingQuantity;
     }
+
 
     @Override
     public void setButtonSell(Button buttonSell) {
@@ -61,5 +73,6 @@ public enum Item implements Marketable {
     public void setPrice(int newPrice) {
         this.basePrice = newPrice;
     }
+
 }
 

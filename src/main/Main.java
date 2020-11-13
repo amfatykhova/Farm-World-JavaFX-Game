@@ -19,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -56,31 +57,31 @@ public class Main extends Application {
         primaryStage.setScene(welcome);
         Canvas welcomeCanvas = new Canvas(WIDTH, HEIGHT);
         welcomeGroup.getChildren().add(welcomeCanvas);
-        GraphicsContext gc = welcomeCanvas.getGraphicsContext2D();
+        GraphicsContext gcWelcome = welcomeCanvas.getGraphicsContext2D();
 
-        // SETS CANVAS COLOR
-        Color c = Color.rgb(139, 218, 232);
-        gc.setFill(c);
-        gc.fillRect(0, 0, welcomeCanvas.getWidth(), welcomeCanvas.getHeight());
-
-        // IMPORTS LOGO
-        Image farmImg = new Image("file:images/FarmWorld2.png");
-        gc.drawImage(farmImg, 110, 100);
+        // SET BACKGROUND IMAGE
+        Image farmImg = new Image("file:images/TitleScreen.PNG");
+        gcWelcome.drawImage(farmImg, 0, 0);
 
         // SETS UP START BUTTON
         Button start = new Button("START");
+        start.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         start.setTranslateY(welcomeCanvas.getHeight() * 0.75 + 15); // 615
         start.setTranslateX(welcomeCanvas.getWidth() / 2 - 30); // 370
         welcomeGroup.getChildren().add(start);
 
-        // SETS UP TITLE TEXT FOR WELCOME SCREEN
-        gc.setFill(Color.WHITE);
-        gc.setStroke(Color.DARKCYAN);
-        gc.setLineWidth(3);
-        Font theFont = Font.font("Verdana", FontWeight.BOLD, 48);
-        gc.setFont(theFont);
-        gc.fillText("Welcome to Farm World!", 70, 70);
-        gc.strokeText("Welcome to Farm World!", 70, 70);
 
         // ------SCENE CONFIGURATION-------
         Group configGroup = new Group();
@@ -89,6 +90,13 @@ public class Main extends Application {
 
         start.setOnMouseClicked(e -> primaryStage.setScene(config));
         Canvas configCanvas = new Canvas(WIDTH, HEIGHT);
+
+        // SET'S BACKGROUND IMAGE FOR OPTIONS SCREEN
+        GraphicsContext gcConfig = configCanvas.getGraphicsContext2D();
+        Image configImg = new Image("file:images/Market.PNG");
+        gcConfig.drawImage(configImg, 0, 0);
+
+
         // CREATES A NEW FARM WORLD CONFIGURATIONS OBJECT
         FarmWorldConfigurations configurationsOfWorld = new FarmWorldConfigurations();
         // CREATES DROP DOWN MENU FOR DIFFICULTY
@@ -138,6 +146,19 @@ public class Main extends Application {
                                      Market market) {
 
         Button continueToUI = new Button("Click to Continue");
+        continueToUI.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         grid.add(continueToUI, 0, 6);
 
         Group farmUIGroup = new Group();
@@ -145,6 +166,7 @@ public class Main extends Application {
         farmUI = new Scene(farmUIGroup);
 
         Label fillEverything = new Label("Please fill in every field correctly to continue!");
+        fillEverything.setTextFill(Color.WHITE); // NEW CONTENT
 
         continueToUI.setOnMouseClicked(e -> {
             // GOES TO USER INTERFACE SCENE
@@ -154,8 +176,9 @@ public class Main extends Application {
                         + " " + worldConfig.getSeed() + " "
                         + worldConfig.getSeason()), 0, 5);
 
+                // NEW CONTRNT EDITED METHOD PARAMETERS: ADDED "worldConfig"
                 configureFarmScreen(primaryStage, farmUIGroup, farmCanvas,
-                        player, market, openInventory(player.getInventory()));
+                        player, market, openInventory(player.getInventory()), worldConfig);
 
                 primaryStage.setScene(farmUI);
             } else {
@@ -174,7 +197,7 @@ public class Main extends Application {
         // use fully detailed type for Map.Entry<String, String>
         TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
         column1.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
-                .getKey().toString()));
+                .getKey().getDisplayName()));
 
         TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Quantity");
         column2.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
@@ -186,7 +209,7 @@ public class Main extends Application {
 
         table.getColumns().setAll(column1, column2);
         table.setMaxHeight(150);
-        table.setMaxWidth(150);
+        table.setMaxWidth(200);
         return table;
     }
 
@@ -200,8 +223,36 @@ public class Main extends Application {
         // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
         GridPane grid = new GridPane();
         Button enter = new Button("Enter Game Configurations");
-        Button nameEnter = new Button("Enter Name");
+        enter.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
+        Button nameEnter = new Button("Enter Name: ");
+        nameEnter.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         Label nameLabel = new Label("Enter Name: ");
+        nameLabel.setTextFill(Color.WHITE); // NEW CONTENT
+
 
         // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
         grid.setVgap(4);
@@ -210,11 +261,17 @@ public class Main extends Application {
         grid.add(nameLabel, 0, 0);
         grid.add(nameEntry, 1, 0);
         grid.add(nameEnter, 2, 0);
-        grid.add(new Label("Choose Difficulty: "), 0, 1);
+        Label diff = new Label("Choose Difficulty");
+        diff.setTextFill(Color.WHITE);
+        grid.add(diff, 0, 1);
         grid.add(boxes[0], 1, 1);
-        grid.add(new Label("Choose Seed: "), 0, 2);
+        Label seed = new Label("Choose Seed: ");
+        seed.setTextFill(Color.WHITE);
+        grid.add(seed, 0, 2);
         grid.add(boxes[1], 1, 2);
-        grid.add(new Label("Choose Season :"), 0, 3);
+        Label season = new Label("Choose Season: ");
+        season.setTextFill(Color.WHITE);
+        grid.add(season, 0, 3);
         grid.add(boxes[2], 1, 3);
         grid.add(enter, 0, 4);
 
@@ -234,17 +291,23 @@ public class Main extends Application {
             }
             if (invalid) {
                 nameLabel.setText("Name invalid, please re-enter:");
+                nameLabel.setTextFill(Color.WHITE);
                 nameEntry.clear();
             } else {
                 nameLabel.setText("Name Entered: " + nameEntry.getText());
+                nameLabel.setTextFill(Color.WHITE);
                 itsAllGood.set(true);
             }
         });
 
         Label addDiff = new Label("Please select a difficulty, don't leave it blank");
+        addDiff.setTextFill(Color.WHITE); // NEW
         Label addSeed = new Label("Please select a seed, don't leave it blank");
+        addSeed.setTextFill(Color.WHITE); // NEW
         Label addSeason = new Label("Please select a season, don't leave it blank");
+        addSeason.setTextFill(Color.WHITE); // NEW
         Label addNameMust = new Label("Please don't forget to enter a valid name!");
+        addNameMust.setTextFill(Color.WHITE); // NEW
 
         enter.setOnMouseClicked(e -> {
             boolean isDifficultyEmpty = boxes[0].getValue() == null;
@@ -252,11 +315,28 @@ public class Main extends Application {
             boolean isSeasonEmpty = boxes[2].getValue() == null;
 
             boolean itsOk = itsAllGood.getAndSet(true);
+            if (nameEntry.getText() == null) {
+                itsOk = false;
+                grid.add(addNameMust, 5, 0);
+                nameLabel.setText("please don't leave the name null");
+            }
+            if (!isDifficultyEmpty) {
+                grid.getChildren().remove(addDiff);
+            }
+            if (!isSeedEmpty) {
+                grid.getChildren().remove(addSeed);
+            }
+            if (!isSeasonEmpty) {
+                grid.getChildren().remove(addSeason);
+            }
+            if (nameEntry.getText() != null) {
+                grid.getChildren().remove(addNameMust);
+            }
             if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
                 world.setDifficulty(boxes[0].getValue().toString().toUpperCase());
                 world.setSeed(boxes[1].getValue().toString());
                 world.setSeason(boxes[2].getValue().toString());
-                player.init(nameEntry.getText(), world.getStartingSeeds(), world.getDifficulty());
+                player.init(nameEntry.getText(), world.getStartingItems(), world.getDifficulty());
                 addDiff.setText("");
                 addSeed.setText("");
                 addSeason.setText("");
@@ -265,12 +345,12 @@ public class Main extends Application {
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
-                } else if (isSeedEmpty) {
+                }
+                if (isSeedEmpty) {
                     grid.add(addSeed, 2, 2);
-                } else if (isSeasonEmpty) {
+                }
+                if (isSeasonEmpty) {
                     grid.add(addSeason, 2, 3);
-                } else {
-                    grid.add(addNameMust, 5, 0);
                 }
             }
         });
@@ -279,12 +359,45 @@ public class Main extends Application {
 
     private static void configureFarmScreen(Stage primaryStage, Group farmUIGroup,
                                             Canvas farmCanvas, Player player, Market market,
-                                            TableView<Map.Entry<Item, Integer>> tableView) {
+                                            TableView<Map.Entry<Item, Integer>> tableView,
+                                            FarmWorldConfigurations worldConfig) {
         Text moneyDisplay = new Text("Money: $" + player.getBalance());
         Text dayDisplay = new Text("Day " + player.getDay());
         Button toMarketButton = new Button("Market");
+        toMarketButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44), linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9), rgba(255,255,255,0));"
+                + "-fx-background-radius: 30; -fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00; -fx-font-weight: bold; -fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         Button nextDayButton = new Button("Next Day");
+        nextDayButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44), linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9), rgba(255,255,255,0));"
+                + "-fx-background-radius: 30; -fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00; -fx-font-weight: bold; -fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         GridPane farmGrid = new GridPane();
+
+        //IMPORTS BACKGROUND IMAGE
+        Image hills = new Image("file:images/BarrowHills.PNG");
+        Image desert = new Image("file:images/DessertOasis.PNG");
+        Image plains = new Image("file:images/RollingPlains.PNG");
+        ImagePattern hillsPattern = new ImagePattern(hills);
+        ImagePattern desertPattern = new ImagePattern(desert);
+        ImagePattern plainsPattern = new ImagePattern(plains);
+
+        if (worldConfig.getSeed().equals("Barrow Hills")) {
+            farmUI.setFill(hillsPattern);
+        } else if (worldConfig.getSeed().equals("Dessert Oasis")) {
+            farmUI.setFill(desertPattern);
+        } else if (worldConfig.getSeed().equals("Rolling Plains")) {
+            farmUI.setFill(plainsPattern);
+        }
 
         Plot[][] plots = new Plot[PLOT_ROWS][PLOT_COLS];
 
@@ -319,12 +432,15 @@ public class Main extends Application {
             System.out.println("Rand event is: " + event);
             Random rand = new Random();
             int amount = (rand.nextInt(6) + 1) * 10;
+
             int numKilled = 0;
+
 
             for (int i = 0; i < PLOT_COLS; i++) {
                 for (int j = 0; j < PLOT_ROWS; j++) {
                     switch (event) {
                     case 1:
+
                         // Rain
                         plots[j][i].waterUp(amount);
                         break;
@@ -345,6 +461,7 @@ public class Main extends Application {
                                 + (threshold * PLOT_COLS * PLOT_ROWS) + " plots");
                         if (Math.random() <= threshold) {
                             plots[j][i].kill();
+
                             numKilled++;
                         }
                         break;
@@ -425,11 +542,13 @@ public class Main extends Application {
                 contextMenu2.getItems().addAll(waterMenuItem,
                         pesticideMenuItem, fertilizerMenuItem);
 
+
                 TextArea menuArea = new TextArea();
                 menuArea.setContextMenu(contextMenu);
 
                 TextArea menuArea2 = new TextArea();
                 menuArea2.setContextMenu(contextMenu2);
+
 
                 plotButton.setOnMouseClicked(e -> {
 
@@ -452,16 +571,18 @@ public class Main extends Application {
                     if (newPlot.getMaturity().equals(Maturity.MATURE)
                             && e.getButton() == MouseButton.PRIMARY) {
                         try {
-                            int numHarvested = rand.nextInt(3) + 2;
+                            int numHarvested = rand.nextInt(3
+                                    + newPlot.getFertilizerLevel() > 0 ? 2 : 0) + 2;
                             int remSpace = player.getInventory().getCapacity()
                                     - player.getInventory().getSize();
-
                             if (remSpace == 0) {
                                 System.out.println("Cannot harvest " + plant.name()
                                         + " because you've run out of inventory space");
                             } else {
-                                player.getInventory().add(plant, Math.min(remSpace, numHarvested));
-                                System.out.println("Plant to harvest: " + plant.name());
+                                player.getInventory().add(newPlot.getPlant(),
+                                        Math.min(remSpace, numHarvested));
+                                System.out.println("Plant to harvest: "
+                                        + newPlot.getPlant().name());
                                 newPlot.harvest();
                                 System.out.println(player.getInventory().getItemMap().toString());
                                 tableView.getColumns().get(0).setVisible(false);
@@ -506,11 +627,13 @@ public class Main extends Application {
                             newPlot.waterPlot();
                             System.out.println("New water level is " + newPlot.getWaterLevel());
                         });
+
                         pesticideMenuItem.setOnAction(event1 -> {
                             // Apply pesticides
                             try {
                                 player.getInventory().remove(Item.PESTICIDE, 1);
                                 newPlot.applyPesticides();
+
                                 //Update table numbers
                                 tableView.getColumns().get(0).setVisible(false);
                                 tableView.getColumns().get(0).setVisible(true);
@@ -543,7 +666,6 @@ public class Main extends Application {
                             }
                         });
                     }
-
                 });
                 plots[j][i] = newPlot;
                 farmGrid.add(plotButton, i, j);
@@ -582,7 +704,7 @@ public class Main extends Application {
         TableColumn<Map.Entry<Item, Integer>, String> column1Inventory =
                 new TableColumn<>("Item");
         column1Inventory.setCellValueFactory(p ->
-                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+                new SimpleObjectProperty<>(p.getValue().getKey().getDisplayName())
         );
         TableColumn<Map.Entry<Item, Integer>, String> column2Inventory =
                 new TableColumn<>("Quantity");
@@ -594,6 +716,19 @@ public class Main extends Application {
         final TableView<Map.Entry<Item, Integer>> inventoryTable = new TableView<>(items1);
 
         Button returnToUI = new Button("Return to Farm UI");
+        returnToUI.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         returnToUI.setOnMouseClicked(e -> {
             moneyDisplay.setText("Money: $" + player.getBalance());
             System.out.println(player.getBalance());
@@ -618,7 +753,7 @@ public class Main extends Application {
         Map<Item, Integer> map2 = market.getItemMap();
         TableColumn<Map.Entry<Item, Integer>, String> column1Market = new TableColumn<>("Item");
         column1Market.setCellValueFactory(p ->
-                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+                new SimpleObjectProperty<>(p.getValue().getKey().getDisplayName())
         );
         TableColumn<Map.Entry<Item, Integer>, String> column2Market = new TableColumn<>("Price");
         column2Market.setCellValueFactory(p ->
@@ -632,6 +767,19 @@ public class Main extends Application {
 
         // SELL BUTTON
         Button sellButton = new Button("Sell");
+        sellButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         sellButton.setOnMouseClicked(e -> {
             Item sellItem = inventoryBox.getValue();
             if (sellItem != null) {
@@ -646,11 +794,24 @@ public class Main extends Application {
             }
         });
 
-        //BUY BUTTON
+        // BUY BUTTON
         Button buyButton = new Button("Buy");
+        buyButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
+                + " linear-gradient(#ffef84, #f2ba44),"
+                + " linear-gradient(#ffea6a, #efaa22),"
+                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+                + " linear-gradient(from 0% 0% to 15% 50%,"
+                + " rgba(255,255,255,0.9),"
+                + " rgba(255,255,255,0));"
+                + "-fx-background-radius: 30;"
+                + "-fx-background-insets: 0,1,2,3,0;"
+                + "-fx-text-fill: #654b00;"
+                + "-fx-font-weight: bold;"
+                + "-fx-font-size: 14px;"
+                + "-fx-padding: 10 20 10 20;");
         buyButton.setOnMouseClicked(e -> {
             Item buyItem = marketBox.getValue();
-            if (buyItem != null) {
+            if (buyItem != null && !buyItem.name().contains("_")) {
                 try {
                     player.buyItem(buyItem, 1);
                     refreshBox(inventoryBox, player.getInventory().getItemMap());
@@ -665,6 +826,7 @@ public class Main extends Application {
                 }
             }
         });
+
 
         VBox content = new VBox(5);
         content.getChildren().addAll(returnToUI, moneyDisplay, marketInventory, inventoryTable,

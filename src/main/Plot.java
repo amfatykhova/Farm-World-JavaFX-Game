@@ -1,5 +1,6 @@
 package main;
 
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -15,8 +16,10 @@ public class Plot {
     private final int minWater = 20;
     private final int maxWater = 90;
     private int waterLevel;
+
     private final int minFertilizerLevel = 0;
     private final int maxFertilizerLevel = 10;
+
     private int fertilizerLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
@@ -50,10 +53,18 @@ public class Plot {
     public void grow() {
         switch (this.maturity) {
         case SEED:
-            this.maturity = Maturity.SPROUT;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.IMMATURE;
+            } else {
+                this.maturity = Maturity.SPROUT;
+            }
             break;
         case SPROUT:
-            this.maturity = Maturity.IMMATURE;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.MATURE;
+            } else {
+                this.maturity = Maturity.IMMATURE;
+            }
             break;
         case IMMATURE:
             this.maturity = Maturity.MATURE;
@@ -61,7 +72,9 @@ public class Plot {
         default:
             return;
         }
+
         String path = "file:images/" + this.plant.name().toLowerCase();
+
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);
@@ -74,6 +87,10 @@ public class Plot {
 
     public Item getPlant() {
         return plant;
+    }
+
+    public void setPlant(Item plant) {
+        this.plant = plant;
     }
 
     public Maturity getMaturity() {
