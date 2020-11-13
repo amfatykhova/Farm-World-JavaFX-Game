@@ -862,6 +862,8 @@ public class Main extends Application {
         // FARM WORKER CONTENT STARTS HERE:
         ComboBox<Worker> workerBox = new ComboBox<>();
         refreshWorkerBox(workerBox, workerMarket.getWorkerMap());
+        // LAY OFF WORKER COMBO BOX:
+        // FARM WORKER CONTENT STARTS HERE:
 
         // POPULATE WITH AN OBSERVABLE LIST OF WORKERS IN THE MARKET USE WORKER BUY BUTTON
         Label workersForHire = new Label("Workers for hire:");
@@ -880,7 +882,53 @@ public class Main extends Application {
 
         workerTable.getColumns().setAll(column1WorkerMarket, column2WorkerMarket);
 
-        //BUY BUTTON
+
+        // FIRING WORKERS STARTS HERE
+        ComboBox<Worker> layOffBox = new ComboBox<>();
+        refreshWorkerBox(layOffBox, player.getWorkerInventory().getWorkerMap());
+
+        Label workersToFire = new Label("Workers To Lay Off:");
+        Map<Worker, Integer> fireMap = player.getWorkerInventory().getWorkerMap();
+        TableColumn<Map.Entry<Worker, Integer>, String> fire1Col = new TableColumn<>("Worker");
+        fire1Col.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+        );
+        TableColumn<Map.Entry<Worker, Integer>, String> fire2Col = new TableColumn<>("Quantity");
+        fire2Col.setCellValueFactory(p ->
+                new SimpleObjectProperty<>(p.getValue().getValue().toString())
+        );
+        ObservableList<Map.Entry<Worker, Integer>> firing =
+                FXCollections.observableArrayList(fireMap.entrySet());
+        final TableView<Map.Entry<Worker, Integer>> fireTable = new TableView<>(firing);
+
+        fireTable.getColumns().setAll(fire1Col, fire2Col);
+
+        //HIRE BUTTON
+        Button fireWorkerButton = new Button("Fire Worker");
+        fireWorkerButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400)," +
+                " linear-gradient(#ffef84, #f2ba44)," +
+                " linear-gradient(#ffea6a, #efaa22)," +
+                " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%)," +
+                " linear-gradient(from 0% 0% to 15% 50%," +
+                " rgba(255,255,255,0.9)," +
+                " rgba(255,255,255,0));" +
+                "-fx-background-radius: 30;" +
+                "-fx-background-insets: 0,1,2,3,0;" +
+                "-fx-text-fill: #654b00;" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 14px;" +
+                "-fx-padding: 10 20 10 20;");
+        fireWorkerButton.setOnMouseClicked(e -> {
+            Worker firedWorker = layOffBox.getValue();
+            if (firedWorker != null) {
+                player.fireWorker(firedWorker, 1);
+                refreshWorkerBox(layOffBox, player.getWorkerInventory().getWorkerMap());
+                fireTable.getColumns().get(0).setVisible(false);
+                fireTable.getColumns().get(0).setVisible(true);
+            }
+        });
+
+        //HIRE BUTTON
         Button hireWorkerButton = new Button("Hire Worker");
         hireWorkerButton.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400)," +
                 " linear-gradient(#ffef84, #f2ba44)," +
@@ -901,8 +949,8 @@ public class Main extends Application {
                 try {
                     player.hireWorker(hiredWorker, 1);
                     refreshWorkerBox(workerBox, workerMarket.getWorkerMap());
-                    workerTable.getColumns().get(0).setVisible(false);
-                    workerTable.getColumns().get(0).setVisible(true);
+                    fireTable.getColumns().get(0).setVisible(false);
+                    fireTable.getColumns().get(0).setVisible(true);
                     moneyDisplay.setText("$" + player.getBalance());
                 } catch (InsufficientFundsException | WorkerInventoryCapacityException ex) {
                     System.out.println("Failed to hire worker: " + ex.getMessage());
@@ -915,7 +963,8 @@ public class Main extends Application {
 
         VBox content = new VBox(5);
         content.getChildren().addAll(returnToUI, moneyDisplay, marketInventory, inventoryTable,
-                inventoryBox, sellButton, marketStand, saleTable, marketBox, buyButton, workerTable, workerBox, hireWorkerButton);
+                inventoryBox, sellButton, marketStand, saleTable, marketBox, buyButton, workersForHire,
+                workerTable, workerBox, hireWorkerButton, workersToFire, fireTable, layOffBox, fireWorkerButton);
         ScrollPane scroller = new ScrollPane(content);
         scroller.setFitToWidth(true);
 
@@ -943,4 +992,3 @@ public class Main extends Application {
         launch(args);
     }
 }
-

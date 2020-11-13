@@ -65,6 +65,14 @@ public class Player {
         this.balance -= (int) (((double) quantity) * worker.getPrice());
     }
 
+    public void fireWorker(Worker worker, int quantity) {
+        try {
+            this.workerInventory.remove(worker, quantity);
+        } catch (InsufficientItemsException e) {
+            System.out.println("Cannot sell item. You don't have any " +  worker.name());
+        }
+    }
+
     public int incrementDay() {
         return ++this.day;
     }

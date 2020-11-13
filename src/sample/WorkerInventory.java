@@ -10,13 +10,19 @@ public class WorkerInventory {
     private int capacity;
     private int size;
     private Worker sal; // starting worker
+    private Worker erny;
+    private Worker bob;
 
     public WorkerInventory(FarmWorldConfigurations.Difficulty difficulty) {
         this.capacity = (int) (100 * difficulty.getMultiplier());
         this.workers = new HashMap<Worker, Integer>(this.capacity);
         this.sal = Worker.ENTRY;
-        this.workers.put(sal, 1);
-        this.size = 1; // start with 0 workers
+        this.erny = Worker.MEDIUM;
+        this.bob = Worker.ADVANCED;
+        this.workers.put(sal, 0);
+        this.workers.put(erny, 0);
+        this.workers.put(bob, 0);
+        this.size = 0; // start with 0 workers
     }
 
     public void remove(Worker worker, int number) throws InsufficientItemsException {
@@ -54,5 +60,7 @@ public class WorkerInventory {
     public int getSize() {
         return size;
     }
+
+
 
 }
