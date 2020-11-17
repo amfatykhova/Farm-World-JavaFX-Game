@@ -29,7 +29,7 @@ public class Plot {
         this.waterLevel = 50;
         this.fertilizerLevel = 0;
 
-        String plantName = this.plant.name().toLowerCase();
+        String plantName = plant == null ? "" : this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
         System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
                 + num + ".PNG");
@@ -73,8 +73,8 @@ public class Plot {
             return;
         }
 
-        String path = "file:images/" + this.plant.name().toLowerCase();
-
+        String path = "file:images/" + this.plant.toConcat();
+        System.out.println("Setting image to: " + path);
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);

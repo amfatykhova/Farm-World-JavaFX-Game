@@ -11,7 +11,10 @@ public enum Item implements Marketable {
     PUMPKIN_PESTICIDES(10, 0),
     WHEAT_PESTICIDES(7, 0),
     PESTICIDE(10, 4),
-    FERTILIZER(15, 4);
+    FERTILIZER(15, 4),
+    TRACTOR(200, 0),
+    IRRIGATION(100, 0),
+    PLOTS(50, 9);
 
     private int basePrice;
     private int startingQuantity;

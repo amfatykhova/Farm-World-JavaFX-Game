@@ -5,16 +5,9 @@ package test;
     @version 1.0
  */
 
-import main.FarmWorldConfigurations;
-import main.Inventory;
-import main.InventoryCapacityException;
-import main.Item;
-import main.Main;
-import main.Player;
+import main.*;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-
-import javafx.scene.control.Button;
 
 import java.util.List;
 import java.util.Map;
@@ -48,15 +41,6 @@ public class M3JUnit {
     }
 
     @Test (timeout = TO)
-    public void itemButton() {
-        Item item1 = Item.WHEAT;
-        item1.setButtonBuy(new Button("Buy Wheat"));
-        item1.setButtonSell(new Button("Sell Wheat"));
-        assertEquals(item1.getButtonBuy().getText(), "Buy Wheat");
-        assertEquals(item1.getButtonSell().getText(), "Sell Wheat");
-    }
-
-    @Test (timeout = TO)
     public void inventoryConstructor() {
         List<Item> items = new ArrayList<>();
         items.add(Item.MELON);
@@ -87,7 +71,7 @@ public class M3JUnit {
     }
 
     @Test (timeout = TO, expected = IllegalArgumentException.class)
-    public void inventoryRemove() {
+    public void inventoryRemove() throws InsufficientItemsException {
         List<Item> items = new ArrayList<>();
         items.add(Item.MELON);
         items.add(Item.PUMPKIN);
@@ -121,7 +105,7 @@ public class M3JUnit {
         list.add(Item.PUMPKIN);
         list.add(Item.WHEAT);
 
-        assertEquals(world.getStartingSeeds(), list);
+        assertEquals(world.getStartingItems(), list);
     }
 
     @Test
