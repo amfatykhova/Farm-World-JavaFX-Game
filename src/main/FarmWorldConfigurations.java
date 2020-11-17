@@ -9,7 +9,7 @@ difficulty, starting seed, starting season
 public class FarmWorldConfigurations {
 
 
-    enum Difficulty {
+    public enum Difficulty {
         EASY(1.0),
         MEDIUM(0.75),
         HARD(0.5);
@@ -73,8 +73,6 @@ public class FarmWorldConfigurations {
     }
 
     public List<Item> getStartingItems() {
-        return Arrays.asList(Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT,
-            Item.MELON_PESTICIDES, Item.PUMPKIN_PESTICIDES, Item.POTATO_PESTICIDES,
-            Item.WHEAT_PESTICIDES, Item.PESTICIDE, Item.FERTILIZER);
+        return Arrays.asList(Item.values());
     }
 }

@@ -14,6 +14,10 @@ public class Player {
     private FarmWorldConfigurations.Difficulty difficulty;
     private int balance;
     private int day;
+    private int plotHarvestLimit;
+    private int plotsHarvestedToday;
+    private int plotWateringLimit;
+    private int plotsWateredToday;
 
     public Player() {
         this.day = 1; // Start on day
@@ -21,16 +25,13 @@ public class Player {
 
     public void init(String name, List<Item> items, FarmWorldConfigurations.Difficulty diff) {
         this.inventory = new Inventory(items, diff);
-        // worker inventory initialized:
         this.difficulty = diff;
         this.name = name;
         this.balance = (int) (this.difficulty.getMultiplier() * 1000);
-        Item.PESTICIDE.setPrice((int) (1 / this.difficulty.getMultiplier()) * 10);
-        Item.FERTILIZER.setPrice((int) (1 / this.difficulty.getMultiplier()) * 15);
-    }
-
-    public String getName() {
-        return name;
+        this.plotHarvestLimit = (int) (this.difficulty.getMultiplier() * 12); // 12-9-6
+        this.plotWateringLimit = (int) (this.difficulty.getMultiplier() * 12); // 12-9-6
+        Item.PESTICIDE.setPrice((int) (1 / this.difficulty.getMultiplier()) * 10); // 10-13-20
+        Item.FERTILIZER.setPrice((int) (1 / this.difficulty.getMultiplier()) * 15); // 15-20-30
     }
 
     public void sellItem(Item item, int quantity) {
@@ -43,6 +44,11 @@ public class Player {
         } catch (InsufficientItemsException e) {
             System.out.println("Cannot sell item. You don't have any " + item.name());
         }
+        if (item.equals(Item.TRACTOR)) {
+            this.plotHarvestLimit -= 2;
+        } else if (item.equals(Item.IRRIGATION)) {
+            this.plotWateringLimit -= 2;
+        }
     }
 
     public void buyItem(Item item, int quantity) throws InsufficientFundsException,
@@ -53,30 +59,17 @@ public class Player {
         }
         this.inventory.add(item, quantity);
         this.balance -= (int) (((double) quantity) * item.getPrice());
+        if (item.equals(Item.TRACTOR)) {
+            this.plotHarvestLimit += 2; // Each tractor increases max harvesting per day by 2
+        } else if (item.equals(Item.IRRIGATION)) {
+            this.plotWateringLimit += 2; // Each irrigation increases max watering per day by 2
+        }
     }
 
     public int incrementDay() {
+        this.plotsHarvestedToday = 0; // Reset counters
+        this.plotsWateredToday = 0;
         return ++this.day;
-    }
-
-    public Inventory getInventory() {
-        return this.inventory;
-    }
-
-    public int getBalance() {
-        return this.balance;
-    }
-
-    public int getDay() {
-        return this.day;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public FarmWorldConfigurations.Difficulty getDifficulty() {
-        return difficulty;
     }
 
     public int getRandomEvent() {
@@ -109,5 +102,53 @@ public class Player {
             return 3; // Locusts
         }
         return 0; // No event
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public Inventory getInventory() {
+        return this.inventory;
+    }
+
+    public int getBalance() {
+        return this.balance;
+    }
+
+    public int getDay() {
+        return this.day;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getPlotsHarvestedToday() {
+        return this.plotsHarvestedToday;
+    }
+
+    public int getPlotHarvestLimit() {
+        return this.plotHarvestLimit;
+    }
+
+    public void incrementPlotsHarvested() {
+        this.plotsHarvestedToday++;
+    }
+
+    public int getPlotsWateredToday() {
+        return this.plotsWateredToday;
+    }
+
+    public int getPlotWateringLimit() {
+        return this.plotWateringLimit;
+    }
+
+    public void incrementPlotsWatered() {
+        this.plotsWateredToday++;
+    }
+
+    public FarmWorldConfigurations.Difficulty getDifficulty() {
+        return difficulty;
     }
 }
