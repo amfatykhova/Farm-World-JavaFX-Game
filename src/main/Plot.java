@@ -31,8 +31,8 @@ public class Plot {
 
         String plantName = plant == null ? "" : this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
-        System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
-                + num + ".PNG");
+        //System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
+        //        + num + ".PNG");
         ImageView plotView = null;
         if (this.maturity.equals(Maturity.EMPTY)) {
             plotView = new ImageView(new Image("file:images/empty.PNG"));
@@ -73,8 +73,9 @@ public class Plot {
             return;
         }
 
+        //System.out.println(this.plant.getDisplayName() + " is now " + this.getMaturity().name());
         String path = "file:images/" + this.plant.toConcat();
-        System.out.println("Setting image to: " + path);
+        //System.out.println("Setting image to: " + path);
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);
@@ -101,11 +102,13 @@ public class Plot {
         this.maturity = Maturity.EMPTY;
         this.plant = null;
         removePesticides();
+        MediaController.playHarvest();
     }
 
     public void plantSeed(String str) {
         this.maturity = Maturity.SEED;
         this.plant = Item.valueOf(str);
+        MediaController.playPlant();
     }
 
     // Multiple other methods need to use this functionality
@@ -149,7 +152,8 @@ public class Plot {
     }
 
     public void kill() {
-        if (this.getMaturity().equals(Maturity.DEAD)) {
+        if (this.getMaturity().equals(Maturity.DEAD) // Can't kill a dead or empty plot
+                || this.getMaturity().equals(Maturity.EMPTY)) {
             return;
         }
         this.maturity = Maturity.DEAD;
