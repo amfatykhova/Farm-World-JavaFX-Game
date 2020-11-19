@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventTarget;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -13,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -28,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main extends Application {
 
@@ -40,7 +41,7 @@ public class Main extends Application {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 800;
     private static final int PLOT_SIZE = 100;
-    private static int farmSize = 3;
+    private static int farmSize;
 
     private static final Font DISPLAY_FONT = Font.font("Verdana", FontWeight.MEDIUM, 24);
     private static final String BUTTON_CSS = "-fx-background-color:"
@@ -58,13 +59,33 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        startGame(primaryStage);
+    }
 
+    public static void startGame(Stage primaryStage) {
         primaryStage.setTitle("Farm World");
+        MediaController.stopGameOver(); // If player hit New Game, then stop previous music
+        primaryStage.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
+            EventTarget target = mouseEvent.getTarget();
+            if (target instanceof Button) {
+                Button b = (Button) target;
+                if (b.getStyle().equals(BUTTON_CSS)) { // If navigation button clicked
+                    MediaController.playClick();
+                }
+            } else if (target instanceof Text) { // Handle player click on the text of the button
+                Text t = (Text) mouseEvent.getTarget();
+                if (t.getParent() instanceof Button) {
+                    Button b = (Button) t.getParent();
+                    if (b.getStyle().equals(BUTTON_CSS)) { // If navigation button
+                        MediaController.playClick();
+                    }
+                }
+            }
+        });
 
         // -------SCENE WELCOME-------
         Group welcomeGroup = new Group();
         Scene welcome = new Scene(welcomeGroup);
-        primaryStage.setScene(welcome);
         Canvas welcomeCanvas = new Canvas(WIDTH, HEIGHT);
         welcomeGroup.getChildren().add(welcomeCanvas);
         GraphicsContext gcWelcome = welcomeCanvas.getGraphicsContext2D();
@@ -75,23 +96,14 @@ public class Main extends Application {
 
         // SETS UP START BUTTON
         Button start = new Button("START");
-        start.setStyle("-fx-background-color: linear-gradient(#ffd65b, #e68400),"
-                + " linear-gradient(#ffef84, #f2ba44),"
-                + " linear-gradient(#ffea6a, #efaa22),"
-                + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
-                + " linear-gradient(from 0% 0% to 15% 50%,"
-                + " rgba(255,255,255,0.9),"
-                + " rgba(255,255,255,0));"
-                + "-fx-background-radius: 30;"
-                + "-fx-background-insets: 0,1,2,3,0;"
-                + "-fx-text-fill: #654b00;"
-                + "-fx-font-weight: bold;"
-                + "-fx-font-size: 14px;"
-                + "-fx-padding: 10 20 10 20;");
+        start.setStyle(BUTTON_CSS);
         start.setTranslateY(welcomeCanvas.getHeight() * 0.75 + 15); // 615
         start.setTranslateX(welcomeCanvas.getWidth() / 2 - 30); // 370
         welcomeGroup.getChildren().add(start);
+        primaryStage.setScene(welcome);
 
+        // Play intro sound
+        MediaController.playIntro();
 
         // ------SCENE CONFIGURATION-------
         Group configGroup = new Group();
@@ -140,6 +152,8 @@ public class Main extends Application {
 
         Player player = new Player();
         Market market = new Market();
+        farmSize = 3;
+        plots = new Plot[farmSize][farmSize];
 
         GridPane grid = configOptionsScreen(new ComboBox[]{diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
@@ -178,6 +192,7 @@ public class Main extends Application {
                 configureFarmScreen(primaryStage, farmUIGroup, farmCanvas,
                         player, market, openInventory(player.getInventory()), worldConfig);
 
+                MediaController.stopIntro();
                 primaryStage.setScene(farmUI);
             } else {
                 grid.add(fillEverything, 7, 0);
@@ -357,7 +372,6 @@ public class Main extends Application {
         } else if (worldConfig.getSeed().equals("Rolling Plains")) {
             farmUI.setFill(plainsPattern);
         }
-        plots = new Plot[farmSize][farmSize];
         moneyDisplay.setFont(DISPLAY_FONT);
         moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
         dayDisplay.setFont(DISPLAY_FONT);
@@ -375,7 +389,11 @@ public class Main extends Application {
         setupPlots(player, tableView, farmGrid);
         toMarketButton.setOnMouseClicked(e -> {
             moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
-            setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
+            if (player.getBalance() >= 3000.0 / player.getDifficulty().getMultiplier()) {
+                goToGameOverScreen(primaryStage, true); // Win
+            } else {
+                setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
+            }
         });
         nextDayButton.setOnMouseClicked(e -> {
             dayDisplay.setText("Day " + player.incrementDay());
@@ -383,7 +401,7 @@ public class Main extends Application {
             ArrayList<Button> plotButtons = new ArrayList<>();
 
             int event = player.getRandomEvent(); // Calculate random events
-            System.out.println("Rand event is: " + event);
+            // System.out.println("Rand event is: " + event);
             Random rand = new Random();
             int amount = (rand.nextInt(6) + 1) * 10;
             double threshold = 1 - (0.6 * player.getDifficulty().getMultiplier());
@@ -417,24 +435,19 @@ public class Main extends Application {
                     default:
                         // Nothing
                     }
-                    // No random event occurred, so decrease hydration and advance growth stage
                     plots[j][i].waterDown(10);
-
-                    if (plots[j][i].getFertilizerLevel() > 0) { // Grow twice if fertilized
-                        plots[j][i].grow();
-                        plots[j][i].grow();
-                        plots[j][i].decrementFertilizerLevel();
-                    } else {
-                        plots[j][i].grow();
-                    }
+                    plots[j][i].grow();
+                    plots[j][i].decrementFertilizerLevel();
                     plotButtons.add(plots[j][i].getButton());
                 }
             }
-            if (player.getBalance() == 0) {
-                boolean allDead = true;
+            boolean allDead = true;
+            if (player.getBalance() < 5) { // 5 is the cheapest seed they can buy
+                System.out.println("Game could be over...");
                 for (int i = 0; i < farmSize; i++) {
                     for (int j = 0; j < farmSize; j++) {
-                        if (!plots[j][i].getMaturity().equals(Maturity.DEAD)) {
+                        if (!plots[j][i].getMaturity().equals(Maturity.DEAD)
+                                && !plots[j][i].getMaturity().equals(Maturity.EMPTY)) {
                             allDead = false;
                             break;
                         }
@@ -442,7 +455,8 @@ public class Main extends Application {
                 }
                 if (allDead) {
                     System.out.println("GAME OVER");
-                    goToGameOverScreen(primaryStage);
+                    goToGameOverScreen(primaryStage, false);
+                    return;
                 }
             }
             if (event != 0) {
@@ -477,17 +491,32 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(nextDayButton);
     }
 
-    private static void goToGameOverScreen(Stage primaryStage) {
+    private static void goToGameOverScreen(Stage primaryStage, boolean win) {
         Group gameOverGroup = new Group();
         Scene gameOverScene = new Scene(gameOverGroup);
-        primaryStage.setScene(gameOverScene);
         Canvas gameOverCanvas = new Canvas(WIDTH, HEIGHT);
-        gameOverGroup.getChildren().add(gameOverCanvas);
         GraphicsContext gc = gameOverCanvas.getGraphicsContext2D();
 
-        Image farmImg = new Image("file:images/GameOver.PNG");
-        gc.drawImage(farmImg, 0, 0);
+        Image gameOverImg = new Image("file:images/GameOver.PNG");
+        gc.drawImage(gameOverImg, 0, 0);
+
+        Button newGameButton = new Button("New Game");
+        newGameButton.setOnAction(clicked -> {
+            MediaController.stopGameOver();
+            startGame(primaryStage);
+        });
+        newGameButton.setStyle(BUTTON_CSS);
+        newGameButton.setTranslateY(gameOverCanvas.getHeight() * 0.75 + 15); // 615
+        newGameButton.setTranslateX(gameOverCanvas.getWidth() / 2 - 30); // 370
+
+        gameOverGroup.getChildren().addAll(gameOverCanvas, newGameButton);
         primaryStage.setScene(gameOverScene);
+
+        if (win) {
+            MediaController.playWin();
+        } else {
+            MediaController.playGameOver();
+        }
     }
 
     private static void setupPlots(Player player, TableView<Map.Entry<Item, Integer>> tableView,
@@ -575,12 +604,9 @@ public class Main extends Application {
                             System.out.println("Harvesting failed with error: " + ex.getMessage());
                         }
                     }
-                    if (newPlot.getMaturity().equals(Maturity.EMPTY)
-                            && e.getButton() == MouseButton.SECONDARY) { // Planting new seeds
-                        setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
-                                new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
-                                new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
-                    }
+                    setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
+                            new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
+                            new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
                     if (!newPlot.getMaturity().equals(Maturity.EMPTY)
                             && e.getButton() == MouseButton.SECONDARY) {
                         waterMenuItem.setOnAction(event1 -> { // Water crop
@@ -646,11 +672,14 @@ public class Main extends Application {
                                              Plot newPlot, Button plotButton,
                                              ContextMenu contextMenu, MenuItem[] menuItems,
                                              Item[] seeds) {
-        AtomicInteger i = new AtomicInteger();
-        for (MenuItem item : menuItems) {
-            item.setOnAction(event -> plantAction(player, tableView, newPlot,
-                    plotButton, item, seeds[i.getAndIncrement()]));
-        }
+        menuItems[0].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[0], Item.MELON));
+        menuItems[1].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[1], Item.POTATO));
+        menuItems[2].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[2], Item.PUMPKIN));
+        menuItems[3].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[3], Item.WHEAT));
         plotButton.setOnContextMenuRequested(contextMenuEvent -> {
             if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
                 contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
@@ -836,7 +865,7 @@ public class Main extends Application {
             plotButton.setOnMouseClicked(e -> {
                 if (newPlot.getMaturity().equals(Maturity.DEAD)
                         && e.getButton() == MouseButton.PRIMARY) { // Clear dead plants
-                    System.out.println("Plant to clear: " + newPlot.getPlant().name());
+                    //System.out.println("Plant to clear: " + newPlot.getPlant().name());
                     newPlot.harvest();
                     System.out.println(player.getInventory().getItemMap().toString());
                     tableView.getColumns().get(0).setVisible(false);
@@ -888,12 +917,9 @@ public class Main extends Application {
                         System.out.println("Harvesting failed with error: " + ex.getMessage());
                     }
                 }
-                if (newPlot.getMaturity().equals(Maturity.EMPTY)
-                        && e.getButton() == MouseButton.SECONDARY) { // Planting new seeds
-                    setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
-                            new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
-                            new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
-                }
+                setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
+                        new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
+                        new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
                 if (!newPlot.getMaturity().equals(Maturity.EMPTY)
                         && e.getButton() == MouseButton.SECONDARY) {
                     waterMenuItem.setOnAction(event1 -> { // Water crop

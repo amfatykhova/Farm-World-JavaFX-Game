@@ -91,7 +91,7 @@ public class Player {
         }
         Random rand = new Random();
         int prob = rand.nextInt(100) + 1; // 1..100
-        System.out.println("Prob: " + prob);
+        // System.out.println("Prob: " + prob);
         if (prob <= pRain) {
             return 1; // Rain
         }
