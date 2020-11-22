@@ -17,6 +17,11 @@ public class Inventory {
             this.items.put(s, quantity);
             this.size += quantity;
         }
+        for (Item i : Item.values()) {
+            if (!this.items.containsKey(i)) {
+                this.items.put(i, 0);
+            }
+        }
     }
 
     public void remove(Item item, int number) throws InsufficientItemsException {
