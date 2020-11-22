@@ -1,3 +1,5 @@
+package test;
+
 /*
     JUnit tests for Milestone 4 Code
     @author Noura El Bayrouti
@@ -5,6 +7,7 @@
  */
 
 import javafx.embed.swing.JFXPanel;
+import main.*;
 import org.junit.Test;
 
 import java.util.Random;
@@ -101,7 +104,7 @@ public class M4JUnit {
         int plant = rand.nextInt(4);
         Plot plot = new Plot(Item.values()[plant], Maturity.SEED, 100);
         int initialWater = plot.getWaterLevel();
-        plot.waterDown();
+        plot.waterDown(10);
         assertEquals(initialWater - 10, plot.getWaterLevel());
     }
 
@@ -128,10 +131,10 @@ public class M4JUnit {
         int plant = rand.nextInt(4);
         Plot plot = new Plot(Item.values()[plant], Maturity.SEED, 100);
         int initialWater = plot.getWaterLevel();
-        plot.waterDown();
-        plot.waterDown();
-        plot.waterDown();
-        plot.waterDown();
+        plot.waterDown(10);
+        plot.waterDown(10);
+        plot.waterDown(10);
+        plot.waterDown(10);
         assertEquals(initialWater - 40, plot.getWaterLevel());
         plot.waterLevelCheck();
         assertEquals(Maturity.DEAD, plot.getMaturity());
@@ -144,9 +147,9 @@ public class M4JUnit {
         int plant = rand.nextInt(4);
         Plot plot = new Plot(Item.values()[plant], Maturity.SEED, 100);
         int initialWater = plot.getWaterLevel();
-        plot.waterDown();
-        plot.waterDown();
-        plot.waterDown();
+        plot.waterDown(10);
+        plot.waterDown(10);
+        plot.waterDown(10);
         plot.waterLevelCheck();
         assertEquals(Maturity.SEED, plot.getMaturity());
     }

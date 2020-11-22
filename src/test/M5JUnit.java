@@ -154,3 +154,4 @@ public class M5JUnit {
         assertEquals(30, Item.FERTILIZER.getPrice());
     }
 }
+

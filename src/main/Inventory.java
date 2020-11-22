@@ -43,6 +43,7 @@ public class Inventory {
         this.size += number;
     }
 
+
     public Map<Item, Integer> getItemMap() {
         return this.items;
     }

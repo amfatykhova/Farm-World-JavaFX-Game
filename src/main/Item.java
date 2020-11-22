@@ -1,32 +1,44 @@
 package main;
 
-import javafx.scene.control.Button;
-
 public enum Item implements Marketable {
 
     MELON(20, 4),
     POTATO(5, 20),
     PUMPKIN(15, 8),
     WHEAT(10, 16),
-    PESTICIDE(10, 1),
-    FERTILIZER(15, 0);
+    MELON_PESTICIDES(15, 0),
+    POTATO_PESTICIDES(3, 0),
+    PUMPKIN_PESTICIDES(10, 0),
+    WHEAT_PESTICIDES(7, 0),
+    PESTICIDE(10, 4),
+    FERTILIZER(15, 4),
+    TRACTOR(200, 0),
+    IRRIGATION(100, 0),
+    PLOTS(50, 9);
 
     private int basePrice;
     private int startingQuantity;
-    private Button buttonSell;
-    private Button buttonBuy;
 
     Item(int price, int startQuantity) {
         try {
             this.basePrice = price;
             this.startingQuantity = startQuantity;
-            this.buttonSell = new Button("Sell");
-            this.buttonBuy = new Button("Buy");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    public String getDisplayName() {
+        String str = this.name().toLowerCase();
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    public String toConcat() {
+        if (this.name().contains("_")) {
+            return this.name().substring(0, this.name().indexOf("_"));
+        }
+        return this.name();
+    }
 
     @Override
     public int getPrice() {
@@ -38,28 +50,7 @@ public enum Item implements Marketable {
         return this.startingQuantity;
     }
 
-    @Override
-    public void setButtonSell(Button buttonSell) {
-        this.buttonSell = buttonSell;
-    }
-
-    @Override
-    public Button getButtonSell() {
-        return buttonSell;
-    }
-
-    @Override
-    public void setButtonBuy(Button buttonBuy) {
-        this.buttonBuy = buttonBuy;
-    }
-
-    @Override
-    public Button getButtonBuy() {
-        return buttonBuy;
-    }
-
-    public void setPrice(int newPrice) {
-        this.basePrice = newPrice;
+    public void setPrice(int price) {
+        this.basePrice = price;
     }
 }
-

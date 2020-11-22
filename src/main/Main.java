@@ -4,21 +4,23 @@ import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventTarget;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.*;
-import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -29,7 +31,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 public class Main extends Application {
 
     private static Scene config;
@@ -39,48 +40,70 @@ public class Main extends Application {
     // game canvas dimensions
     private static final int WIDTH = 800;
     private static final int HEIGHT = 800;
-    private static final int PLOT_ROWS = 3;
-    private static final int PLOT_COLS = 4;
     private static final int PLOT_SIZE = 100;
+    private static int farmSize;
 
     private static final Font DISPLAY_FONT = Font.font("Verdana", FontWeight.MEDIUM, 24);
+    private static final String BUTTON_CSS = "-fx-background-color:"
+            + " linear-gradient(#ffd65b, #e68400),"
+            + " linear-gradient(#ffef84, #f2ba44), linear-gradient(#ffea6a, #efaa22),"
+            + " linear-gradient(#ffe657 0%, #f8c202 50%, #eea10b 100%),"
+            + " linear-gradient(from 0% 0% to 15% 50%,"
+            + " rgba(255,255,255,0.9), rgba(255,255,255,0));"
+            + "-fx-background-radius: 30; -fx-background-insets: 0,1,2,3,0;"
+            + "-fx-text-fill: #654b00; -fx-font-weight: bold; -fx-font-size: 14px;"
+            + "-fx-padding: 10 20 10 20;";
+
+    private static Plot[][] plots;
+    private static GridPane farmGrid;
 
     @Override
     public void start(Stage primaryStage) {
+        startGame(primaryStage);
+    }
 
+    public static void startGame(Stage primaryStage) {
         primaryStage.setTitle("Farm World");
+        MediaController.stopGameOver(); // If player hit New Game, then stop previous music
+        primaryStage.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseEvent -> {
+            EventTarget target = mouseEvent.getTarget();
+            if (target instanceof Button) {
+                Button b = (Button) target;
+                if (b.getStyle().equals(BUTTON_CSS)) { // If navigation button clicked
+                    MediaController.playClick();
+                }
+            } else if (target instanceof Text) { // Handle player click on the text of the button
+                Text t = (Text) mouseEvent.getTarget();
+                if (t.getParent() instanceof Button) {
+                    Button b = (Button) t.getParent();
+                    if (b.getStyle().equals(BUTTON_CSS)) { // If navigation button
+                        MediaController.playClick();
+                    }
+                }
+            }
+        });
 
         // -------SCENE WELCOME-------
         Group welcomeGroup = new Group();
         Scene welcome = new Scene(welcomeGroup);
-        primaryStage.setScene(welcome);
         Canvas welcomeCanvas = new Canvas(WIDTH, HEIGHT);
         welcomeGroup.getChildren().add(welcomeCanvas);
-        GraphicsContext gc = welcomeCanvas.getGraphicsContext2D();
+        GraphicsContext gcWelcome = welcomeCanvas.getGraphicsContext2D();
 
-        // SETS CANVAS COLOR
-        Color c = Color.rgb(139, 218, 232);
-        gc.setFill(c);
-        gc.fillRect(0, 0, welcomeCanvas.getWidth(), welcomeCanvas.getHeight());
-
-        // IMPORTS LOGO
-        Image farmImg = new Image("file:images/FarmWorld2.png");
-        gc.drawImage(farmImg, 110, 100);
+        // SET BACKGROUND IMAGE
+        Image farmImg = new Image("file:images/TitleScreen.PNG");
+        gcWelcome.drawImage(farmImg, 0, 0);
 
         // SETS UP START BUTTON
         Button start = new Button("START");
+        start.setStyle(BUTTON_CSS);
         start.setTranslateY(welcomeCanvas.getHeight() * 0.75 + 15); // 615
         start.setTranslateX(welcomeCanvas.getWidth() / 2 - 30); // 370
         welcomeGroup.getChildren().add(start);
+        primaryStage.setScene(welcome);
 
-        // SETS UP TITLE TEXT FOR WELCOME SCREEN
-        gc.setFill(Color.WHITE);
-        gc.setStroke(Color.DARKCYAN);
-        gc.setLineWidth(3);
-        Font theFont = Font.font("Verdana", FontWeight.BOLD, 48);
-        gc.setFont(theFont);
-        gc.fillText("Welcome to Farm World!", 70, 70);
-        gc.strokeText("Welcome to Farm World!", 70, 70);
+        // Play intro sound
+        MediaController.playIntro();
 
         // ------SCENE CONFIGURATION-------
         Group configGroup = new Group();
@@ -89,6 +112,13 @@ public class Main extends Application {
 
         start.setOnMouseClicked(e -> primaryStage.setScene(config));
         Canvas configCanvas = new Canvas(WIDTH, HEIGHT);
+
+        // SET'S BACKGROUND IMAGE FOR OPTIONS SCREEN
+        GraphicsContext gcConfig = configCanvas.getGraphicsContext2D();
+        Image configImg = new Image("file:images/Market.PNG");
+        gcConfig.drawImage(configImg, 0, 0);
+
+
         // CREATES A NEW FARM WORLD CONFIGURATIONS OBJECT
         FarmWorldConfigurations configurationsOfWorld = new FarmWorldConfigurations();
         // CREATES DROP DOWN MENU FOR DIFFICULTY
@@ -122,6 +152,8 @@ public class Main extends Application {
 
         Player player = new Player();
         Market market = new Market();
+        farmSize = 3;
+        plots = new Plot[farmSize][farmSize];
 
         GridPane grid = configOptionsScreen(new ComboBox[]{diffBox, seedBox, seasonBox},
                 configGroup, configCanvas, toUI, configurationsOfWorld, player);
@@ -138,6 +170,8 @@ public class Main extends Application {
                                      Market market) {
 
         Button continueToUI = new Button("Click to Continue");
+        continueToUI.setStyle(BUTTON_CSS);
+
         grid.add(continueToUI, 0, 6);
 
         Group farmUIGroup = new Group();
@@ -145,6 +179,7 @@ public class Main extends Application {
         farmUI = new Scene(farmUIGroup);
 
         Label fillEverything = new Label("Please fill in every field correctly to continue!");
+        fillEverything.setTextFill(Color.WHITE); // NEW CONTENT
 
         continueToUI.setOnMouseClicked(e -> {
             // GOES TO USER INTERFACE SCENE
@@ -155,8 +190,9 @@ public class Main extends Application {
                         + worldConfig.getSeason()), 0, 5);
 
                 configureFarmScreen(primaryStage, farmUIGroup, farmCanvas,
-                        player, market, openInventory(player.getInventory()));
+                        player, market, openInventory(player.getInventory()), worldConfig);
 
+                MediaController.stopIntro();
                 primaryStage.setScene(farmUI);
             } else {
                 grid.add(fillEverything, 7, 0);
@@ -174,7 +210,7 @@ public class Main extends Application {
         // use fully detailed type for Map.Entry<String, String>
         TableColumn<Map.Entry<Item, Integer>, String> column1 = new TableColumn<>("Item");
         column1.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
-                .getKey().toString()));
+                .getKey().getDisplayName()));
 
         TableColumn<Map.Entry<Item, Integer>, String> column2 = new TableColumn<>("Quantity");
         column2.setCellValueFactory(p -> new SimpleObjectProperty<>(p.getValue()
@@ -185,8 +221,8 @@ public class Main extends Application {
         final TableView<Map.Entry<Item, Integer>> table = new TableView<>(items);
 
         table.getColumns().setAll(column1, column2);
-        table.setMaxHeight(150);
-        table.setMaxWidth(150);
+        table.setMaxHeight(map.size() * 28);
+        table.setMaxWidth(200);
         return table;
     }
 
@@ -200,8 +236,12 @@ public class Main extends Application {
         // CREATES BUTTON TO ENTER WORLD SPECIFICATIONS
         GridPane grid = new GridPane();
         Button enter = new Button("Enter Game Configurations");
-        Button nameEnter = new Button("Enter Name");
+        enter.setStyle(BUTTON_CSS);
+        Button nameEnter = new Button("Enter Name: ");
+        nameEnter.setStyle(BUTTON_CSS);
         Label nameLabel = new Label("Enter Name: ");
+        nameLabel.setTextFill(Color.WHITE); // NEW CONTENT
+
 
         // ORGANIZES ALL ATTRIBUTES IN A GRID PANE (COLUMN, ROW)
         grid.setVgap(4);
@@ -210,11 +250,17 @@ public class Main extends Application {
         grid.add(nameLabel, 0, 0);
         grid.add(nameEntry, 1, 0);
         grid.add(nameEnter, 2, 0);
-        grid.add(new Label("Choose Difficulty: "), 0, 1);
+        Label diff = new Label("Choose Difficulty");
+        diff.setTextFill(Color.WHITE);
+        grid.add(diff, 0, 1);
         grid.add(boxes[0], 1, 1);
-        grid.add(new Label("Choose Seed: "), 0, 2);
+        Label seed = new Label("Choose Seed: ");
+        seed.setTextFill(Color.WHITE);
+        grid.add(seed, 0, 2);
         grid.add(boxes[1], 1, 2);
-        grid.add(new Label("Choose Season :"), 0, 3);
+        Label season = new Label("Choose Season: ");
+        season.setTextFill(Color.WHITE);
+        grid.add(season, 0, 3);
         grid.add(boxes[2], 1, 3);
         grid.add(enter, 0, 4);
 
@@ -234,17 +280,23 @@ public class Main extends Application {
             }
             if (invalid) {
                 nameLabel.setText("Name invalid, please re-enter:");
+                nameLabel.setTextFill(Color.WHITE);
                 nameEntry.clear();
             } else {
                 nameLabel.setText("Name Entered: " + nameEntry.getText());
+                nameLabel.setTextFill(Color.WHITE);
                 itsAllGood.set(true);
             }
         });
 
         Label addDiff = new Label("Please select a difficulty, don't leave it blank");
+        addDiff.setTextFill(Color.WHITE); // NEW
         Label addSeed = new Label("Please select a seed, don't leave it blank");
+        addSeed.setTextFill(Color.WHITE); // NEW
         Label addSeason = new Label("Please select a season, don't leave it blank");
+        addSeason.setTextFill(Color.WHITE); // NEW
         Label addNameMust = new Label("Please don't forget to enter a valid name!");
+        addNameMust.setTextFill(Color.WHITE); // NEW
 
         enter.setOnMouseClicked(e -> {
             boolean isDifficultyEmpty = boxes[0].getValue() == null;
@@ -252,11 +304,28 @@ public class Main extends Application {
             boolean isSeasonEmpty = boxes[2].getValue() == null;
 
             boolean itsOk = itsAllGood.getAndSet(true);
+            if (nameEntry.getText() == null) {
+                itsOk = false;
+                grid.add(addNameMust, 5, 0);
+                nameLabel.setText("please don't leave the name null");
+            }
+            if (!isDifficultyEmpty) {
+                grid.getChildren().remove(addDiff);
+            }
+            if (!isSeedEmpty) {
+                grid.getChildren().remove(addSeed);
+            }
+            if (!isSeasonEmpty) {
+                grid.getChildren().remove(addSeason);
+            }
+            if (nameEntry.getText() != null) {
+                grid.getChildren().remove(addNameMust);
+            }
             if (!isDifficultyEmpty && !isSeedEmpty && !isSeasonEmpty && itsOk) {
                 world.setDifficulty(boxes[0].getValue().toString().toUpperCase());
                 world.setSeed(boxes[1].getValue().toString());
                 world.setSeason(boxes[2].getValue().toString());
-                player.init(nameEntry.getText(), world.getStartingSeeds(), world.getDifficulty());
+                player.init(nameEntry.getText(), world.getStartingItems(), world.getDifficulty());
                 addDiff.setText("");
                 addSeed.setText("");
                 addSeason.setText("");
@@ -265,12 +334,12 @@ public class Main extends Application {
             } else {
                 if (isDifficultyEmpty) {
                     grid.add(addDiff, 2, 1);
-                } else if (isSeedEmpty) {
+                }
+                if (isSeedEmpty) {
                     grid.add(addSeed, 2, 2);
-                } else if (isSeasonEmpty) {
+                }
+                if (isSeasonEmpty) {
                     grid.add(addSeason, 2, 3);
-                } else {
-                    grid.add(addNameMust, 5, 0);
                 }
             }
         });
@@ -279,18 +348,34 @@ public class Main extends Application {
 
     private static void configureFarmScreen(Stage primaryStage, Group farmUIGroup,
                                             Canvas farmCanvas, Player player, Market market,
-                                            TableView<Map.Entry<Item, Integer>> tableView) {
+                                            TableView<Map.Entry<Item, Integer>> tableView,
+                                            FarmWorldConfigurations worldConfig) {
         Text moneyDisplay = new Text("Money: $" + player.getBalance());
         Text dayDisplay = new Text("Day " + player.getDay());
         Button toMarketButton = new Button("Market");
+        toMarketButton.setStyle(BUTTON_CSS);
         Button nextDayButton = new Button("Next Day");
-        GridPane farmGrid = new GridPane();
+        nextDayButton.setStyle(BUTTON_CSS);
+        farmGrid = new GridPane();
 
-        Plot[][] plots = new Plot[PLOT_ROWS][PLOT_COLS];
+        Image hills = new Image("file:images/BarrowHills.PNG");
+        Image desert = new Image("file:images/DessertOasis.PNG");
+        Image plains = new Image("file:images/RollingPlains.PNG");
+        ImagePattern hillsPattern = new ImagePattern(hills);
+        ImagePattern desertPattern = new ImagePattern(desert);
+        ImagePattern plainsPattern = new ImagePattern(plains);
 
+        if (worldConfig.getSeed().equals("Barrow Hills")) {
+            farmUI.setFill(hillsPattern);
+        } else if (worldConfig.getSeed().equals("Dessert Oasis")) {
+            farmUI.setFill(desertPattern);
+        } else if (worldConfig.getSeed().equals("Rolling Plains")) {
+            farmUI.setFill(plainsPattern);
+        }
         moneyDisplay.setFont(DISPLAY_FONT);
         moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
         dayDisplay.setFont(DISPLAY_FONT);
+
         dayDisplay.setTranslateY(dayDisplay.getLayoutBounds().getHeight());
         dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
         toMarketButton.setTranslateY(moneyDisplay.getLayoutBounds().getHeight() * 2.0);
@@ -301,67 +386,77 @@ public class Main extends Application {
         nextDayButton.setFont(DISPLAY_FONT);
         nextDayButton.setTranslateY(HEIGHT - moneyDisplay.getLayoutBounds().getHeight() * 2.0);
 
-        setupPlots(player, tableView, farmGrid, plots);
-
+        setupPlots(player, tableView, farmGrid);
         toMarketButton.setOnMouseClicked(e -> {
             moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
-            setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
-            System.out.println(player.getBalance());
+            if (player.getBalance() >= 3000.0 / player.getDifficulty().getMultiplier()) {
+                goToGameOverScreen(primaryStage, true); // Win
+            } else {
+                setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
+            }
         });
-
         nextDayButton.setOnMouseClicked(e -> {
             dayDisplay.setText("Day " + player.incrementDay());
             dayDisplay.setTranslateX(WIDTH - dayDisplay.getLayoutBounds().getWidth());
             ArrayList<Button> plotButtons = new ArrayList<>();
 
-            // Calculate random events
-            int event = player.getRandomEvent();
-            System.out.println("Rand event is: " + event);
+            int event = player.getRandomEvent(); // Calculate random events
+            // System.out.println("Rand event is: " + event);
             Random rand = new Random();
             int amount = (rand.nextInt(6) + 1) * 10;
+            double threshold = 1 - (0.6 * player.getDifficulty().getMultiplier());
+            int numToKill = (int) (threshold * farmSize * farmSize);
             int numKilled = 0;
-
-            for (int i = 0; i < PLOT_COLS; i++) {
-                for (int j = 0; j < PLOT_ROWS; j++) {
+            for (int i = 0; i < farmSize; i++) {
+                for (int j = 0; j < farmSize; j++) {
                     switch (event) {
                     case 1:
-                        // Rain
-                        plots[j][i].waterUp(amount);
+                        plots[j][i].waterUp(amount); // Rain
                         break;
                     case 2:
-                        // Drought
-                        plots[j][i].waterDown(amount);
+                        plots[j][i].waterDown(amount); // Drought
                         break;
                     case 3:
-                        // Locusts
-                        if (plots[j][i].getPesticides()) {
-                            //Don't kill if has pesticides
-                            System.out.println("Your pesticides protected against a locust storm!");
+                        System.out.println("Locusts: supposed to kill " + numToKill); //Locusts
+                        if (plots[j][i].getPlant() == null) {
                             break;
                         }
-
-                        double threshold = 1 - (0.8 * player.getDifficulty().getMultiplier());
-                        System.out.println("Locusts: Killing ~"
-                                + (threshold * PLOT_COLS * PLOT_ROWS) + " plots");
-                        if (Math.random() <= threshold) {
+                        if (plots[j][i].getPlant().name().contains("_")) { // Check pesticides
+                            System.out.println("Your pesticides protected against locusts!");
+                            numToKill--;
+                            break;
+                        }
+                        if (Math.random() <= 0.5 && numToKill > 0) {
                             plots[j][i].kill();
+                            numToKill--;
                             numKilled++;
                         }
                         break;
                     default:
                         // Nothing
                     }
-                    // No random event occurred, so decrease hydration and advance growth stage
                     plots[j][i].waterDown(10);
-                    //Grow twice if fertilized, otherwise one grow
-                    if (plots[j][i].getFertilizerLevel() > 0) {
-                        plots[j][i].grow();
-                        plots[j][i].grow();
-                        plots[j][i].decrementFertilizerLevel();
-                    } else {
-                        plots[j][i].grow();
-                    }
+                    plots[j][i].grow();
+                    plots[j][i].decrementFertilizerLevel();
                     plotButtons.add(plots[j][i].getButton());
+                }
+            }
+            boolean allDead = true;
+            if (player.getBalance() < 5) { // 5 is the cheapest seed they can buy
+                System.out.println("Game could be over...");
+                for (int i = 0; i < farmSize; i++) {
+                    for (int j = 0; j < farmSize; j++) {
+                        if (!plots[j][i].getMaturity().equals(Maturity.DEAD)
+                                && !plots[j][i].getMaturity().equals(Maturity.EMPTY)) {
+                            allDead = false;
+                            break;
+                        }
+                    }
+                }
+                if (allDead) {
+                    System.out.println("GAME OVER");
+                    goToGameOverScreen(primaryStage, false);
+                    return;
                 }
             }
             if (event != 0) {
@@ -377,7 +472,6 @@ public class Main extends Application {
                 }
                 alert.showAndWait();
             }
-
             farmGrid.getChildren().clear();
             farmGrid.getChildren().addAll(plotButtons);
         });
@@ -397,11 +491,39 @@ public class Main extends Application {
         farmUIGroup.getChildren().add(nextDayButton);
     }
 
-    private static void setupPlots(Player player, TableView<Map.Entry<Item, Integer>> tableView,
-                                   GridPane farmGrid, Plot[][] plots) {
+    private static void goToGameOverScreen(Stage primaryStage, boolean win) {
+        Group gameOverGroup = new Group();
+        Scene gameOverScene = new Scene(gameOverGroup);
+        Canvas gameOverCanvas = new Canvas(WIDTH, HEIGHT);
+        GraphicsContext gc = gameOverCanvas.getGraphicsContext2D();
 
-        for (int i = 0; i < PLOT_COLS; i++) {
-            for (int j = 0; j < PLOT_ROWS; j++) {
+        Image gameOverImg = new Image("file:images/GameOver.PNG");
+        gc.drawImage(gameOverImg, 0, 0);
+
+        Button newGameButton = new Button("New Game");
+        newGameButton.setOnAction(clicked -> {
+            MediaController.stopGameOver();
+            startGame(primaryStage);
+        });
+        newGameButton.setStyle(BUTTON_CSS);
+        newGameButton.setTranslateY(gameOverCanvas.getHeight() * 0.75 + 15); // 615
+        newGameButton.setTranslateX(gameOverCanvas.getWidth() / 2 - 30); // 370
+
+        gameOverGroup.getChildren().addAll(gameOverCanvas, newGameButton);
+        primaryStage.setScene(gameOverScene);
+
+        if (win) {
+            MediaController.playWin();
+        } else {
+            MediaController.playGameOver();
+        }
+    }
+
+    private static void setupPlots(Player player, TableView<Map.Entry<Item, Integer>> tableView,
+                                   GridPane farmGrid) {
+
+        for (int i = 0; i < farmSize; i++) {
+            for (int j = 0; j < farmSize; j++) {
                 Random rand = new Random();
                 int maturity = rand.nextInt(4) + 1; // 1..4
                 int type = rand.nextInt(4); // 0..3
@@ -424,16 +546,13 @@ public class Main extends Application {
                 MenuItem fertilizerMenuItem = new MenuItem("Apply Fertilizer");
                 contextMenu2.getItems().addAll(waterMenuItem,
                         pesticideMenuItem, fertilizerMenuItem);
-
                 TextArea menuArea = new TextArea();
                 menuArea.setContextMenu(contextMenu);
                 TextArea menuArea2 = new TextArea();
                 menuArea2.setContextMenu(contextMenu2);
                 plotButton.setOnMouseClicked(e -> {
-
-                    // Clear dead plants
                     if (newPlot.getMaturity().equals(Maturity.DEAD)
-                            && e.getButton() == MouseButton.PRIMARY) {
+                            && e.getButton() == MouseButton.PRIMARY) { // Clear dead plants
                         System.out.println("Plant to clear: " + plant.name());
                         newPlot.harvest();
                         System.out.println(player.getInventory().getItemMap().toString());
@@ -445,30 +564,39 @@ public class Main extends Application {
                         emptyView.setFitWidth(PLOT_SIZE);
                         plotButton.setGraphic(emptyView);
                     }
-
-                    // Harvesting mature plants
                     if (newPlot.getMaturity().equals(Maturity.MATURE)
-                            && e.getButton() == MouseButton.PRIMARY) {
+                            && e.getButton() == MouseButton.PRIMARY) { // Harvesting mature plants
                         try {
-                            int numHarvested = rand.nextInt(3) + 2;
+                            int numHarvested = rand.nextInt(3
+                                    + newPlot.getFertilizerLevel() > 0 ? 2 : 0) + 2;
                             int remSpace = player.getInventory().getCapacity()
                                     - player.getInventory().getSize();
-
                             if (remSpace == 0) {
                                 System.out.println("Cannot harvest " + plant.name()
                                         + " because you've run out of inventory space");
                             } else {
-                                player.getInventory().add(plant, Math.min(remSpace, numHarvested));
-                                System.out.println("Plant to harvest: " + plant.name());
-                                newPlot.harvest();
-                                System.out.println(player.getInventory().getItemMap().toString());
-                                tableView.getColumns().get(0).setVisible(false);
-                                tableView.getColumns().get(0).setVisible(true);
-                                ImageView emptyView = new ImageView(
-                                        new Image("file:images/empty.PNG"));
-                                emptyView.setFitHeight(PLOT_SIZE);
-                                emptyView.setFitWidth(PLOT_SIZE);
-                                plotButton.setGraphic(emptyView);
+                                if (player.getPlotsHarvestedToday()
+                                        == player.getPlotHarvestLimit()) {
+                                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                                    alert.setContentText("You've reached your daily harvesting"
+                                            + " maximum of " + player.getPlotHarvestLimit()
+                                            + ". Purchase a tractor to harvest more plots");
+                                    alert.showAndWait();
+                                } else {
+                                    player.getInventory().add(newPlot.getPlant(),
+                                            Math.min(remSpace, numHarvested));
+                                    System.out.println("Plant to harvest: "
+                                            + newPlot.getPlant().name());
+                                    newPlot.harvest();
+                                    tableView.getColumns().get(0).setVisible(false);
+                                    tableView.getColumns().get(0).setVisible(true);
+                                    ImageView emptyView = new ImageView(
+                                            new Image("file:images/empty.PNG"));
+                                    emptyView.setFitHeight(PLOT_SIZE);
+                                    emptyView.setFitWidth(PLOT_SIZE);
+                                    plotButton.setGraphic(emptyView);
+                                    player.incrementPlotsHarvested();
+                                }
                             }
                             System.out.println("New size: " + player.getInventory().getSize()
                                     + "/" + player.getInventory().getCapacity());
@@ -476,39 +604,30 @@ public class Main extends Application {
                             System.out.println("Harvesting failed with error: " + ex.getMessage());
                         }
                     }
-
-                    // Planting new seeds
-                    if (newPlot.getMaturity().equals(Maturity.EMPTY)
-                            && e.getButton() == MouseButton.SECONDARY) {
-                        menuItem1.setOnAction(event1 -> plantAction(player, tableView, newPlot,
-                                plotButton, menuItem1, Item.MELON));
-                        menuItem2.setOnAction(event1 -> plantAction(player, tableView, newPlot,
-                                plotButton, menuItem2, Item.POTATO));
-                        menuItem3.setOnAction(event1 -> plantAction(player, tableView, newPlot,
-                                plotButton, menuItem3, Item.PUMPKIN));
-                        menuItem4.setOnAction(event1 -> plantAction(player, tableView, newPlot,
-                                plotButton, menuItem4, Item.WHEAT));
-                        plotButton.setOnContextMenuRequested(contextMenuEvent -> {
-                            if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
-                                contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
-                                        contextMenuEvent.getScreenY());
-                            }
-                        });
-                    }
-
-                    // Water, fertilize, pesticides actions in menu
+                    setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
+                            new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
+                            new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
                     if (!newPlot.getMaturity().equals(Maturity.EMPTY)
                             && e.getButton() == MouseButton.SECONDARY) {
-                        waterMenuItem.setOnAction(event1 -> {
-                            // Water crop
-                            newPlot.waterPlot();
-                            System.out.println("New water level is " + newPlot.getWaterLevel());
+                        waterMenuItem.setOnAction(event1 -> { // Water crop
+                            if (player.getPlotsWateredToday()
+                                    == player.getPlotWateringLimit()) {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setContentText("You've reached your daily watering"
+                                        + " maximum of " + player.getPlotWateringLimit()
+                                        + ". Purchase irrigation to water more plots");
+                                alert.showAndWait();
+                            } else {
+                                newPlot.waterPlot();
+                                player.incrementPlotsWatered();
+                                System.out.println("New water level is " + newPlot.getWaterLevel());
+                            }
                         });
-                        pesticideMenuItem.setOnAction(event1 -> {
-                            // Apply pesticides
+                        pesticideMenuItem.setOnAction(event1 -> { // Apply pesticides
                             try {
                                 player.getInventory().remove(Item.PESTICIDE, 1);
-                                newPlot.applyPesticides();
+                                newPlot.setPlant(Item.valueOf(newPlot.getPlant().toConcat()
+                                        + "_PESTICIDES"));
                                 //Update table numbers
                                 tableView.getColumns().get(0).setVisible(false);
                                 tableView.getColumns().get(0).setVisible(true);
@@ -541,12 +660,32 @@ public class Main extends Application {
                             }
                         });
                     }
-
                 });
                 plots[j][i] = newPlot;
                 farmGrid.add(plotButton, i, j);
             }
         }
+    }
+
+    private static void setPlantingListeners(Player player,
+                                             TableView<Map.Entry<Item, Integer>> tableView,
+                                             Plot newPlot, Button plotButton,
+                                             ContextMenu contextMenu, MenuItem[] menuItems,
+                                             Item[] seeds) {
+        menuItems[0].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[0], Item.MELON));
+        menuItems[1].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[1], Item.POTATO));
+        menuItems[2].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[2], Item.PUMPKIN));
+        menuItems[3].setOnAction(event1 -> plantAction(player, tableView, newPlot,
+                plotButton, menuItems[3], Item.WHEAT));
+        plotButton.setOnContextMenuRequested(contextMenuEvent -> {
+            if (newPlot.getMaturity().equals(Maturity.EMPTY)) {
+                contextMenu.show(plotButton, contextMenuEvent.getScreenX(),
+                        contextMenuEvent.getScreenY());
+            }
+        });
     }
 
     private static void plantAction(Player player, TableView<Map.Entry<Item, Integer>> tableView,
@@ -574,13 +713,14 @@ public class Main extends Application {
                                     TableView<Map.Entry<Item, Integer>> tableView,
                                     Group farmUIGroup) {
 
+
         moneyDisplay.setText("$" + player.getBalance());
         Text marketInventory = new Text("                                Inventory:");
         Map<Item, Integer> map1 = player.getInventory().getItemMap();
         TableColumn<Map.Entry<Item, Integer>, String> column1Inventory =
                 new TableColumn<>("Item");
         column1Inventory.setCellValueFactory(p ->
-                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+                new SimpleObjectProperty<>(p.getValue().getKey().getDisplayName())
         );
         TableColumn<Map.Entry<Item, Integer>, String> column2Inventory =
                 new TableColumn<>("Quantity");
@@ -592,6 +732,7 @@ public class Main extends Application {
         final TableView<Map.Entry<Item, Integer>> inventoryTable = new TableView<>(items1);
 
         Button returnToUI = new Button("Return to Farm UI");
+        returnToUI.setStyle(BUTTON_CSS);
         returnToUI.setOnMouseClicked(e -> {
             moneyDisplay.setText("Money: $" + player.getBalance());
             System.out.println(player.getBalance());
@@ -613,10 +754,15 @@ public class Main extends Application {
 
         // POPULATE WITH AN OBSERVABLE LIST OF ITEMS IN THE MARKET USE BUY BUTTON
         Label marketStand = new Label("Items for Sale:");
+
         Map<Item, Integer> map2 = market.getItemMap();
+        map2.replace(Item.PESTICIDE, (int) ((1 / player.getDifficulty().getMultiplier()) * 10));
+        map2.replace(Item.FERTILIZER, (int) ((1 / player.getDifficulty().getMultiplier()) * 15));
+        map2.replace(Item.PLOTS, (int) ((Math.pow(farmSize + 1, 2) - Math.pow(farmSize, 2))
+                * Item.PLOTS.getPrice()));
         TableColumn<Map.Entry<Item, Integer>, String> column1Market = new TableColumn<>("Item");
         column1Market.setCellValueFactory(p ->
-                new SimpleObjectProperty<>(p.getValue().getKey().toString())
+                new SimpleObjectProperty<>(p.getValue().getKey().getDisplayName())
         );
         TableColumn<Map.Entry<Item, Integer>, String> column2Market = new TableColumn<>("Price");
         column2Market.setCellValueFactory(p ->
@@ -630,6 +776,7 @@ public class Main extends Application {
 
         // SELL BUTTON
         Button sellButton = new Button("Sell");
+        sellButton.setStyle(BUTTON_CSS);
         sellButton.setOnMouseClicked(e -> {
             Item sellItem = inventoryBox.getValue();
             if (sellItem != null) {
@@ -644,13 +791,24 @@ public class Main extends Application {
             }
         });
 
-        //BUY BUTTON
+        // BUY BUTTON
         Button buyButton = new Button("Buy");
+        buyButton.setStyle(BUTTON_CSS);
         buyButton.setOnMouseClicked(e -> {
             Item buyItem = marketBox.getValue();
-            if (buyItem != null) {
+            if (buyItem != null && !buyItem.name().contains("_")) {
                 try {
-                    player.buyItem(buyItem, 1);
+                    if (buyItem.equals(Item.PLOTS)) {
+                        int plotsToAdd = (int) (Math.pow(farmSize + 1, 2)
+                                - Math.pow(farmSize++, 2));
+                        System.out.println("Plots to add " + plotsToAdd);
+                        player.buyItem(buyItem, plotsToAdd);
+                        map2.replace(Item.PLOTS, (int) ((Math.pow(farmSize + 1, 2)
+                                - Math.pow(farmSize, 2)) * Item.PLOTS.getPrice()));
+                        updatePlots(tableView, player, plotsToAdd);
+                    } else {
+                        player.buyItem(buyItem, 1);
+                    }
                     refreshBox(inventoryBox, player.getInventory().getItemMap());
                     refreshBox(marketBox, market.getItemMap());
                     inventoryTable.getColumns().get(0).setVisible(false);
@@ -677,6 +835,152 @@ public class Main extends Application {
         primaryStage.show();
     }
 
+    private static void updatePlots(TableView<Map.Entry<Item, Integer>> tableView, Player player,
+                                    int numToAdd) {
+        Plot[][] newPlotArray = new Plot[farmSize][farmSize];
+        for (int i = 0; i < farmSize - 1; i++) {
+            for (int j = 0; j < farmSize - 1; j++) {
+                newPlotArray[j][i] = plots[j][i];
+            }
+        }
+        for (int i = 0; i < numToAdd; i++) {
+            Random rand = new Random();
+            Plot newPlot = new Plot(null, Maturity.EMPTY, PLOT_SIZE);
+            Button plotButton = newPlot.getButton();
+            ContextMenu contextMenu = new ContextMenu(); // Context Menu for determining seed type
+            MenuItem menuItem1 = new MenuItem("MELON");
+            MenuItem menuItem2 = new MenuItem("POTATO");
+            MenuItem menuItem3 = new MenuItem("PUMPKIN");
+            MenuItem menuItem4 = new MenuItem("WHEAT");
+            contextMenu.getItems().addAll(menuItem1, menuItem2, menuItem3, menuItem4);
+            ContextMenu contextMenu2 = new ContextMenu(); // Context Menu for right-click actions
+            MenuItem waterMenuItem = new MenuItem("Water Plot");
+            MenuItem pesticideMenuItem = new MenuItem("Apply Pesticides");
+            MenuItem fertilizerMenuItem = new MenuItem("Apply Fertilizer");
+            contextMenu2.getItems().addAll(waterMenuItem, pesticideMenuItem, fertilizerMenuItem);
+            TextArea menuArea = new TextArea();
+            menuArea.setContextMenu(contextMenu);
+            TextArea menuArea2 = new TextArea();
+            menuArea2.setContextMenu(contextMenu2);
+            plotButton.setOnMouseClicked(e -> {
+                if (newPlot.getMaturity().equals(Maturity.DEAD)
+                        && e.getButton() == MouseButton.PRIMARY) { // Clear dead plants
+                    //System.out.println("Plant to clear: " + newPlot.getPlant().name());
+                    newPlot.harvest();
+                    System.out.println(player.getInventory().getItemMap().toString());
+                    tableView.getColumns().get(0).setVisible(false);
+                    tableView.getColumns().get(0).setVisible(true);
+                    ImageView emptyView = new ImageView(new Image("file:images/empty.PNG"));
+                    emptyView.setFitHeight(PLOT_SIZE);
+                    emptyView.setFitWidth(PLOT_SIZE);
+                    plotButton.setGraphic(emptyView);
+                }
+
+                if (newPlot.getMaturity().equals(Maturity.MATURE)
+                        && e.getButton() == MouseButton.PRIMARY) { // Harvesting mature plants
+                    try {
+                        int numHarvested = rand.nextInt(3
+                                + newPlot.getFertilizerLevel() > 0 ? 2 : 0) + 2;
+                        int remSpace = player.getInventory().getCapacity()
+                                - player.getInventory().getSize();
+                        if (remSpace == 0) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setContentText("Cannot harvest " + newPlot.getPlant().name()
+                                    + " because you've run out of inventory space");
+                            alert.showAndWait();
+                        } else {
+                            if (player.getPlotsHarvestedToday()
+                                    == player.getPlotHarvestLimit()) {
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setContentText("You've reached your daily harvesting"
+                                        + " maximum of " + player.getPlotHarvestLimit()
+                                        + ". Purchase a tractor to harvest more plots");
+                                alert.showAndWait();
+                            } else {
+                                player.getInventory().add(newPlot.getPlant(),
+                                        Math.min(remSpace, numHarvested));
+                                System.out.println("Harvesting: " + newPlot.getPlant().name());
+                                newPlot.harvest();
+                                tableView.getColumns().get(0).setVisible(false);
+                                tableView.getColumns().get(0).setVisible(true);
+                                ImageView emptyView = new ImageView(
+                                        new Image("file:images/empty.PNG"));
+                                emptyView.setFitHeight(PLOT_SIZE);
+                                emptyView.setFitWidth(PLOT_SIZE);
+                                plotButton.setGraphic(emptyView);
+                                player.incrementPlotsHarvested();
+                            }
+                        }
+                        System.out.println("New size: " + player.getInventory().getSize()
+                                + "/" + player.getInventory().getCapacity());
+                    } catch (InventoryCapacityException ex) {
+                        System.out.println("Harvesting failed with error: " + ex.getMessage());
+                    }
+                }
+                setPlantingListeners(player, tableView, newPlot, plotButton, contextMenu,
+                        new MenuItem[] {menuItem1, menuItem2, menuItem3, menuItem4},
+                        new Item[] {Item.MELON, Item.POTATO, Item.PUMPKIN, Item.WHEAT});
+                if (!newPlot.getMaturity().equals(Maturity.EMPTY)
+                        && e.getButton() == MouseButton.SECONDARY) {
+                    waterMenuItem.setOnAction(event1 -> { // Water crop
+                        if (player.getPlotsWateredToday()
+                                == player.getPlotWateringLimit()) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setContentText("You've reached your daily watering"
+                                    + " maximum of " + player.getPlotWateringLimit()
+                                    + ". Purchase irrigation to water more plots");
+                            alert.showAndWait();
+                        } else {
+                            newPlot.waterPlot();
+                            player.incrementPlotsWatered();
+                            System.out.println("New water level is " + newPlot.getWaterLevel());
+                        }
+                    });
+                    pesticideMenuItem.setOnAction(event1 -> { // Apply pesticides
+                        try {
+                            player.getInventory().remove(Item.PESTICIDE, 1);
+                            newPlot.setPlant(Item.valueOf(newPlot.getPlant().toConcat()
+                                    + "_PESTICIDES"));
+                            //Update table numbers
+                            tableView.getColumns().get(0).setVisible(false);
+                            tableView.getColumns().get(0).setVisible(true);
+                            System.out.println("Pesticides applied to "
+                                    + newPlot.getPlant().name());
+                        } catch (InsufficientItemsException e2) {
+                            System.out.println("Cannot apply pesticides. You do not have any.");
+                        }
+                    });
+                    fertilizerMenuItem.setOnAction(event1 -> { // Apply fertilizer
+                        try {
+                            player.getInventory().remove(Item.FERTILIZER, 1);
+                            newPlot.addFertilizer(3);
+                            tableView.getColumns().get(0).setVisible(false); //Update table numbers
+                            tableView.getColumns().get(0).setVisible(true);
+                            System.out.print("Fertilizer applied to " + newPlot.getPlant().name());
+                            System.out.println(". New level is " + newPlot.getFertilizerLevel());
+                        } catch (InsufficientItemsException e2) {
+                            System.out.println("Cannot apply fertilizer. You do not have any.");
+                        }
+                    });
+                    plotButton.setOnContextMenuRequested(contextMenuEvent -> {
+                        if (!newPlot.getMaturity().equals(Maturity.EMPTY)) {
+                            contextMenu2.show(plotButton, contextMenuEvent.getScreenX(),
+                                    contextMenuEvent.getScreenY());
+                        }
+                    });
+                }
+            });
+            if (i > farmSize - 1) { // Add to right side
+                newPlotArray[i % farmSize][farmSize - 1] = newPlot;
+                farmGrid.add(plotButton, farmSize - 1, i % farmSize);
+            } else { // Add to bottom
+                newPlotArray[farmSize - 1][i] = newPlot;
+                farmGrid.add(plotButton, i, farmSize - 1);
+            }
+        }
+        plots = newPlotArray;
+    }
+
     private static void refreshBox(ComboBox box, Map<Item, Integer> map) {
         map.forEach((key, value) -> {
             box.getItems().remove(key);
@@ -688,4 +992,3 @@ public class Main extends Application {
         launch(args);
     }
 }
-

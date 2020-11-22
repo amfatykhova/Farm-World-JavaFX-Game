@@ -1,5 +1,6 @@
 package main;
 
+
 import javafx.scene.control.Button;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -15,8 +16,10 @@ public class Plot {
     private final int minWater = 20;
     private final int maxWater = 90;
     private int waterLevel;
+
     private final int minFertilizerLevel = 0;
     private final int maxFertilizerLevel = 10;
+
     private int fertilizerLevel;
 
     public Plot(Item plant, Maturity maturity, int plotSize) {
@@ -26,10 +29,10 @@ public class Plot {
         this.waterLevel = 50;
         this.fertilizerLevel = 0;
 
-        String plantName = this.plant.name().toLowerCase();
+        String plantName = plant == null ? "" : this.plant.name().toLowerCase();
         String num = this.maturity.getOrder();
-        System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
-                + num + ".PNG");
+        //System.out.println("Setting plot with " + plantName + " to " + "file:images/" + plantName
+        //        + num + ".PNG");
         ImageView plotView = null;
         if (this.maturity.equals(Maturity.EMPTY)) {
             plotView = new ImageView(new Image("file:images/empty.PNG"));
@@ -50,10 +53,18 @@ public class Plot {
     public void grow() {
         switch (this.maturity) {
         case SEED:
-            this.maturity = Maturity.SPROUT;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.IMMATURE;
+            } else {
+                this.maturity = Maturity.SPROUT;
+            }
             break;
         case SPROUT:
-            this.maturity = Maturity.IMMATURE;
+            if (this.getFertilizerLevel() > 0) {
+                this.maturity = Maturity.MATURE;
+            } else {
+                this.maturity = Maturity.IMMATURE;
+            }
             break;
         case IMMATURE:
             this.maturity = Maturity.MATURE;
@@ -61,7 +72,10 @@ public class Plot {
         default:
             return;
         }
-        String path = "file:images/" + this.plant.name().toLowerCase();
+
+        //System.out.println(this.plant.getDisplayName() + " is now " + this.getMaturity().name());
+        String path = "file:images/" + this.plant.toConcat();
+        //System.out.println("Setting image to: " + path);
         ImageView plotView = new ImageView(new Image(path + this.maturity.getOrder() + ".PNG"));
         plotView.setFitHeight(this.size);
         plotView.setFitWidth(this.size);
@@ -76,6 +90,10 @@ public class Plot {
         return plant;
     }
 
+    public void setPlant(Item plant) {
+        this.plant = plant;
+    }
+
     public Maturity getMaturity() {
         return maturity;
     }
@@ -84,11 +102,13 @@ public class Plot {
         this.maturity = Maturity.EMPTY;
         this.plant = null;
         removePesticides();
+        MediaController.playHarvest();
     }
 
     public void plantSeed(String str) {
         this.maturity = Maturity.SEED;
         this.plant = Item.valueOf(str);
+        MediaController.playPlant();
     }
 
     // Multiple other methods need to use this functionality
@@ -132,7 +152,8 @@ public class Plot {
     }
 
     public void kill() {
-        if (this.getMaturity().equals(Maturity.DEAD)) {
+        if (this.getMaturity().equals(Maturity.DEAD) // Can't kill a dead or empty plot
+                || this.getMaturity().equals(Maturity.EMPTY)) {
             return;
         }
         this.maturity = Maturity.DEAD;
