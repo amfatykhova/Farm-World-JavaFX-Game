@@ -17,6 +17,11 @@ public class Inventory {
             this.items.put(s, quantity);
             this.size += quantity;
         }
+        for (Item i : Item.values()) {
+            if (!this.items.containsKey(i)) {
+                this.items.put(i, 0);
+            }
+        }
     }
 
     public void remove(Item item, int number) throws InsufficientItemsException {
@@ -37,8 +42,9 @@ public class Inventory {
                     + this.size + ") does not have enough capacity (capacity = "
                     + this.capacity + ") to add " + number + " " + item.name() + "'s ");
         }
-        System.out.println("New quantity of " + item.name() + " = "
-                + (this.items.get(item) + number));
+        System.out.println(item.getDisplayName());
+        //System.out.println("New quantity of " + item.name() + " = "
+               // + (this.items.get(item) + number));
         this.items.put(item, this.items.get(item) + number);
         this.size += number;
     }

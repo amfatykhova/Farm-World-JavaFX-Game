@@ -34,9 +34,6 @@ public class Player {
         Item.FERTILIZER.setPrice((int) (1 / this.difficulty.getMultiplier()) * 15); // 15-20-30
     }
 
-    public String getName() {
-        return name;
-    }
 
     public void sellItem(Item item, int quantity) {
         try {
