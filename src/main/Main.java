@@ -389,7 +389,7 @@ public class Main extends Application {
         setupPlots(player, tableView, farmGrid);
         toMarketButton.setOnMouseClicked(e -> {
             moneyDisplay.setTranslateY(moneyDisplay.getLayoutBounds().getHeight());
-            if (player.getBalance() >= 1100.0 / player.getDifficulty().getMultiplier()) {
+            if (player.getBalance() >= 3000.0 / player.getDifficulty().getMultiplier()) {
                 goToGameOverScreen(primaryStage, true); // Win
             } else {
                 setupMarket(primaryStage, player, market, moneyDisplay, tableView, farmUIGroup);
