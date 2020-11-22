@@ -6,17 +6,14 @@
 
 package test;
 
-import javafx.embed.swing.JFXPanel;
 import main.FarmWorldConfigurations;
 import main.InsufficientFundsException;
-import main.Inventory;
 import main.InventoryCapacityException;
 import main.Item;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -34,10 +31,8 @@ public class M6JUnit {
         int initial = p1.getPlotHarvestLimit();
         try {
             p1.buyItem(Item.TRACTOR, 1);
-        } catch(InventoryCapacityException e) {
-            System.out.println("capacity issue");
-        } catch(InsufficientFundsException e) {
-            System.out.println("Didn't buy, not enough money");
+        } catch (InsufficientFundsException | InventoryCapacityException e) {
+            System.out.println("Couldn't buy");
         }
         assertEquals(initial + 2, p1.getPlotHarvestLimit());
     }
@@ -51,8 +46,8 @@ public class M6JUnit {
         p1.init("Name", items, config.getDifficulty());
         try {
             p1.buyItem(Item.TRACTOR, 1);
-        } catch(InsufficientFundsException|InventoryCapacityException e) {
-            ;
+        } catch (InsufficientFundsException | InventoryCapacityException e) {
+            System.out.println("Couldn't buy");
         }
         int initial = p1.getPlotHarvestLimit();
         p1.sellItem(Item.TRACTOR, 1);
@@ -69,10 +64,8 @@ public class M6JUnit {
         int initial = p1.getPlotWateringLimit();
         try {
             p1.buyItem(Item.IRRIGATION, 1);
-        } catch(InventoryCapacityException e) {
-            System.out.println("capacity issue");
-        } catch(InsufficientFundsException e) {
-            System.out.println("Didn't buy, not enough money");
+        } catch (InsufficientFundsException | InventoryCapacityException e) {
+            System.out.println("Couldn't buy");
         }
         assertEquals(initial + 2, p1.getPlotWateringLimit());
     }
@@ -86,8 +79,8 @@ public class M6JUnit {
         p1.init("Name", items, config.getDifficulty());
         try {
             p1.buyItem(Item.IRRIGATION, 1);
-        } catch(InsufficientFundsException|InventoryCapacityException e) {
-            ;
+        } catch (InsufficientFundsException | InventoryCapacityException e) {
+            System.out.println("Couldn't buy");
         }
         int initial = p1.getPlotWateringLimit();
         p1.sellItem(Item.IRRIGATION, 1);

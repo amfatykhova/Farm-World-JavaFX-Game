@@ -44,7 +44,7 @@ public class Inventory {
         }
         System.out.println(item.getDisplayName());
         //System.out.println("New quantity of " + item.name() + " = "
-               // + (this.items.get(item) + number));
+        // + (this.items.get(item) + number));
         this.items.put(item, this.items.get(item) + number);
         this.size += number;
     }
