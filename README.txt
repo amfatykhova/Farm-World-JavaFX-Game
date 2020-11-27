@@ -1,3 +1,5 @@
+[![Watch the video](https://img.youtube.com/vi/uFaKm_-V4ys/maxresdefault.jpg)](https://youtu.be/uFaKm_-V4ys)
+
 These are the Java class files for the Farm World game for CS 2340.
 
 Main.java: this is the main class that launches the javaFX game
